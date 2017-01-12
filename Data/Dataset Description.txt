@@ -1,0 +1,15 @@
+Fields in the dataset include:
+
+Employee satisfaction level
+Last evaluation
+Number of projects
+Average monthly hours
+Time spent at the company
+Whether they have had a work accident
+Whether they have had a promotion in the last 5 years
+Department
+Salary
+Whether the employee has left
+
+Source: https://www.kaggle.com/ludobenistant/hr-analytics
+Released Under CC BY-SA 4.0 License
