@@ -2,7 +2,10 @@
 title: "Predicting Leave of Employees"
 author: "Egor Gazarov; William Handjaja; Dmitry Kalachev; Nathan Kung"
 date: "January 11, 2017"
-output: html_document
+output: 
+ html_document:
+    css: Styles/default.css
+    theme: paper
     toc: yes
     toc_float:
       collapsed: no
@@ -46,3 +49,9 @@ Text:
 ```
 
 ## Part III.I
+
+Text:
+
+```{r , echo=TRUE}
+#code
+```
