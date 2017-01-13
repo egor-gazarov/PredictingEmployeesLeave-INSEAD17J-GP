@@ -1,7 +1,7 @@
 ---
 title: "Predicting Leave of Employees"
-author: "Egor Gazarov; William Handjaja; Dmitry Kalachev; Nathan Kung"
-date: "January 11, 2017"
+author: "Egor Gazarov; William Handjaja; Dmitry Kalachev; Nathan Kung (INSEAD MBA Class of July 2017)"
+date: "January 31, 2017"
 output: 
  html_document:
     css: Styles/default.css
@@ -12,46 +12,87 @@ output:
       smooth_scroll: yes
 ---
 
-```{r , include=FALSE}
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
 # basic preparatory commands
+
+# clearing the working environment
+rm(list = ls())
+
+# loading or installing packages used in the project
+# make sure to list all required packages in ./R/library.R
+source("./R/library.R")
+
+# loading the dataset for the project
+ProjectInput <- read.csv("./Data/HR_dataset.csv", sep=",", dec=".")
+
 ```
 
 # Introduction
 
-Introduction
+## Brief description of the project
 
-```{r , include=FALSE}
-#code
-```
+This project has been done by a group of students of INSEAD course 'Big Data & Analytics for Business' (Professor [Theos Evgeniou](https://www.insead.edu/faculty-research/faculty/theodoros-evgeniou)) in January 2017. Using techniques learned in the course we will analyze dataset describing employees of an organization and build a model to predict if employee will leave a company in near future.
 
-# Part I
 
-Text:
+## Project process and document structure
 
-```{r , echo=TRUE}
-#code
-```
+Both project work and this report are structured according to following process (based on Cross Industry Standard Process for Data Mining):
 
-# Part II
+**1. Business understanding.** Identification of business question to be answered by model prepared during the project.
 
-Text:
+**2. Data undestanding.** Initial analysis of the dataset used in the project using basic descriptive statistics and visualizations.
 
-```{r , echo=TRUE}
-#code
-```
+**3. Data preparation.** Preparation of the dataset for subsequent modeling.
 
-# Part III
++ Check for missing and empty values, exclusion of corresponding observations.
++ Check for outliers, decision on their participation in analysis.
++ Conversion of non-numerical attributes to numerical dummy variables.
++ Range normalization of all attributes (z-score normalization).
++ Dimensionality reduction (necessity to be discussed).
++ Separation of dataset into training and holdout (potential usage of k-fold cross-validation to be discussed).
 
-Text:
+**4. Modelling.** Building the predictive model based on training dataset with target attribute answering the chosen business question.
 
-```{r , echo=TRUE}
-#code
-```
++ Selection of modelling technique. Most probable options are logistic regression, support vector machine, or classification tree. Potentially we can build models of different types to choose the one with highest predictive power on Evaluation step.
++ Building the models using appropriate mathematical algorithms and R packages.
 
-## Part III.I
+**5. Evaluation.** Check of models predictive accuracy on holdout set(s) and choice of the model with highest accuracy.
 
-Text:
+**6. Deployment.** Conclusion on project results and description of potential deployment of built model in practice.
 
-```{r , echo=TRUE}
-#code
-```
+
+# Business Understanding
+
+People are the most important resource for a lot of companies. And employees turnover has always been one of major HR issues. Retaining workers is becoming a balancing act between hard data research and a human touch. It’s more important than ever to complement intuition with statistical analysis (more on this available, for example on [INSEAD Knowledge](http://knowledge.insead.edu/blog/insead-blog/the-art-of-keeping-employees-from-leaving-3896).
+
+Business problem that this project intends to solve is *prediction of employees to leave in near future using attributes known about each of employees*.
+
+# Data Understanding
+
+## Source of data
+
+For this project we use dataset "" published by Ludovic Benistant on kaggle ([source](https://www.kaggle.com/ludobenistant/hr-analytics/)) under CC BY-SA 4.0 License. 
+
+## Description of data
+
+Work in progress
+
+
+# Data preparation
+
+Work in progress
+
+
+# Modelling
+
+Work in progress
+
+
+# Evaluation
+
+Work in progress
+
+
+# Deployment
+
+Work in progress

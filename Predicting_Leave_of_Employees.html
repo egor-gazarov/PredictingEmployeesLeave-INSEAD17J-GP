@@ -9,9 +9,9 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="author" content="Egor Gazarov; William Handjaja; Dmitry Kalachev; Nathan Kung" />
+<meta name="author" content="Egor Gazarov; William Handjaja; Dmitry Kalachev; Nathan Kung (INSEAD MBA Class of July 2017)" />
 
-<meta name="date" content="2017-01-11" />
+<meta name="date" content="2017-01-31" />
 
 <title>Predicting Leave of Employees</title>
 
@@ -223,35 +223,83 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Predicting Leave of Employees</h1>
-<h4 class="author"><em>Egor Gazarov; William Handjaja; Dmitry Kalachev; Nathan Kung</em></h4>
-<h4 class="date"><em>January 11, 2017</em></h4>
+<h4 class="author"><em>Egor Gazarov; William Handjaja; Dmitry Kalachev; Nathan Kung (INSEAD MBA Class of July 2017)</em></h4>
+<h4 class="date"><em>January 31, 2017</em></h4>
 
 </div>
 
 
+<pre class="r"><code># basic preparatory commands
+
+# clearing the working environment
+rm(list = ls())
+
+# loading or installing packages used in the project
+# make sure to list all required packages in ./R/library.R
+source(&quot;./R/library.R&quot;)
+
+# loading the dataset for the project
+ProjectInput &lt;- read.csv(&quot;./Data/HR_dataset.csv&quot;, sep=&quot;,&quot;, dec=&quot;.&quot;)</code></pre>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>Introduction</p>
+<div id="brief-description-of-the-project" class="section level2">
+<h2>Brief description of the project</h2>
+<p>This project has been done by a group of students of INSEAD course ‘Big Data &amp; Analytics for Business’ (Professor <a href="https://www.insead.edu/faculty-research/faculty/theodoros-evgeniou">Theos Evgeniou</a>) in January 2017. Using techniques learned in the course we will analyze dataset describing employees of an organization and build a model to predict if employee will leave a company in near future.</p>
 </div>
-<div id="part-i" class="section level1">
-<h1>Part I</h1>
-<p>Text:</p>
-<pre class="r"><code>#code</code></pre>
+<div id="project-process-and-document-structure" class="section level2">
+<h2>Project process and document structure</h2>
+<p>Both project work and this report are structured according to following process (based on Cross Industry Standard Process for Data Mining):</p>
+<p><strong>1. Business Understanding.</strong> Identification of business question to be answered by model prepared during the project.</p>
+<p><strong>2. Data Undestanding.</strong> Initial analysis of the dataset used in the project using basic descriptive statistics and visualizations.</p>
+<p><strong>3. Data preparation.</strong> Preparation of the dataset for subsequent modeling.</p>
+<ul>
+<li>Check for missing and empty values, exclusion of corresponding observations.</li>
+<li>Check for outliers, decision on their participation in analysis.</li>
+<li>Conversion of non-numerical attributes to numerical dummy variables.</li>
+<li>Range normalization of all attributes (z-score normalization).</li>
+<li>Dimensionality reduction (necessity to be discussed).</li>
+<li>Separation of dataset into training and holdout (potential usage of k-fold cross-validation to be discussed).</li>
+</ul>
+<p><strong>4. Modelling.</strong> Building the predictive model based on training dataset with target attribute answering the chosen business question.</p>
+<ul>
+<li>Selection of modelling technique. Most probable options are logistic regression, support vector machine, or classification tree. Potentially we can build models of different types to choose the one with highest predictive power on Evaluation step.</li>
+<li>Building the models using appropriate mathematical algorithms and R packages.</li>
+</ul>
+<p><strong>5. Evaluation.</strong> Check of models predictive accuracy on holdout set(s) and choice of the model with highest accuracy.</p>
+<p><strong>6. Deployment.</strong> Conclusion on project results and description of potential deployment of built model in practice.</p>
 </div>
-<div id="part-ii" class="section level1">
-<h1>Part II</h1>
-<p>Text:</p>
-<pre class="r"><code>#code</code></pre>
 </div>
-<div id="part-iii" class="section level1">
-<h1>Part III</h1>
-<p>Text:</p>
-<pre class="r"><code>#code</code></pre>
-<div id="part-iii.i" class="section level2">
-<h2>Part III.I</h2>
-<p>Text:</p>
-<pre class="r"><code>#code</code></pre>
+<div id="business-understanding" class="section level1">
+<h1>Business Understanding</h1>
+<p>People are the most important resource for a lot of companies. And employees turnover has always been one of major HR issues. Retaining workers is becoming a balancing act between hard data research and a human touch. It’s more important than ever to complement intuition with statistical analysis (more on this available, for example on <a href="http://knowledge.insead.edu/blog/insead-blog/the-art-of-keeping-employees-from-leaving-3896">INSEAD Knowledge</a>.</p>
+<p>Business problem that this project intends to solve is <em>prediction of employees to leave in near future using attributes known about each of employees</em>.</p>
 </div>
+<div id="data-understanding" class="section level1">
+<h1>Data Understanding</h1>
+<div id="source-of-data" class="section level2">
+<h2>Source of data</h2>
+<p>For this project we use dataset “” published by Ludovic Benistant on kaggle (<a href="https://www.kaggle.com/ludobenistant/hr-analytics/">source</a>) under CC BY-SA 4.0 License.</p>
+</div>
+<div id="description-of-data" class="section level2">
+<h2>Description of data</h2>
+<p>Work in progress</p>
+</div>
+</div>
+<div id="data-preparation" class="section level1">
+<h1>Data preparation</h1>
+<p>Work in progress</p>
+</div>
+<div id="modelling" class="section level1">
+<h1>Modelling</h1>
+<p>Work in progress</p>
+</div>
+<div id="evaluation" class="section level1">
+<h1>Evaluation</h1>
+<p>Work in progress</p>
+</div>
+<div id="deployment" class="section level1">
+<h1>Deployment</h1>
+<p>Work in progress</p>
 </div>
 
 
