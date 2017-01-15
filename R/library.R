@@ -14,4 +14,4 @@ foo <- function(x){
 }
 
 #  Then try/install packages...
-foo( c("googleVis" , "reshape2") )
+foo( c("googleVis" , "ggplot2", "corrplot", "shiny") )

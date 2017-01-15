@@ -23,7 +23,7 @@ rm(list = ls())
 source("./R/library.R")
 
 # loading the dataset for the project
-ProjectInput <- read.csv("./Data/HR_dataset.csv", sep=",", dec=".")
+HR <- read.csv("./Data/HR_dataset.csv", sep=",", dec=".")
 
 ```
 
@@ -49,23 +49,32 @@ Both project work and this report are structured according to following process 
 + Conversion of non-numerical attributes to numerical dummy variables.
 + Range normalization of all attributes (z-score normalization).
 + Dimensionality reduction (necessity to be discussed).
-+ Separation of dataset into training and holdout (potential usage of k-fold cross-validation to be discussed).
++ Separation of dataset into training and test.
 
-**4. Modelling.** Building the predictive model based on training dataset with target attribute answering the chosen business question.
+**4. Modelling.** Building the predictive model based on training dataset with target attribute answering the chosen business question. We will use classification trees methodology.
 
-+ Selection of modelling technique. Most probable options are logistic regression, support vector machine, or classification tree. Potentially we can build models of different types to choose the one with highest predictive power on Evaluation step.
-+ Building the models using appropriate mathematical algorithms and R packages.
++ Decision on predictive quality of model to be considered acceptable.
++ Selection of classification tree algorithm and R package to be used.
++ Selection of explanatory variables.
++ Application of algorithm to training dataset and getting the model.
++ Generation of text and graphical visualizations of decision trees, checking for business sense.
++ Preliminary evaluation of the model using confusion matrix and test dataset. Decision to proceed (if evaluation results are satisfactory) or repeating the modelling process.
 
-**5. Evaluation.** Check of models predictive accuracy on holdout set(s) and choice of the model with highest accuracy.
+**5. Evaluation.** Check of models predictive accuracy on test dataset.
 
-**6. Deployment.** Conclusion on project results and description of potential deployment of built model in practice.
++ Generation of confusion matrix using built model and test dataset.
++ Plotting receiver operating characteristic curve for the model and test dataset.
++ Comparing evaluation results with target characteristics.
++ Decision on accepting the model or repeating the modelling process.
+
+**6. Deployment.** Conclusion on project results and description of potential deployment of built model in practice. Remarks about potential ways to improve process and model of this project.
 
 
 # Business Understanding
 
 People are the most important resource for a lot of companies. And employees turnover has always been one of major HR issues. Retaining workers is becoming a balancing act between hard data research and a human touch. It’s more important than ever to complement intuition with statistical analysis (more on this available, for example on [INSEAD Knowledge](http://knowledge.insead.edu/blog/insead-blog/the-art-of-keeping-employees-from-leaving-3896).
 
-Business problem that this project intends to solve is *prediction of employees to leave in near future using attributes known about each of employees*.
+Business problem that this project intends to solve is **prediction of employees to leave in near future using attributes known about each of employees**.
 
 # Data Understanding
 
@@ -73,9 +82,111 @@ Business problem that this project intends to solve is *prediction of employees 
 
 For this project we use dataset "" published by Ludovic Benistant on kaggle ([source](https://www.kaggle.com/ludobenistant/hr-analytics/)) under CC BY-SA 4.0 License. 
 
-## Description of data
+## Summary of dataset characteristics
 
-Work in progress
+Dataset contains `r nrow(HR)` observations. Each observation represents information about one employee across `r ncol(HR)` variables. Variables are (we indicate code of variable in dataset in parentheses):
+
++ Employee satisfaction level *(satisfaction_level)*
++ Last evaluation *(last_evaluation)*
++ Number of projects *(number_project)*
++ Average monthly hours *(average_montly_hours)*
++ Time spent at the company *(time_spend_company)*
++ Whether they have had a work accident *(Work_accident)*
++ Whether they have had a promotion in the last 5 years *(promotion_last_5years)*
++ Department *(sales)*
++ Salary *(salary)*
++ Whether the employee has left, the target variable in this project *(left)*
+
+Below is summary of project dataset structure.
+
+```{r}
+str(HR)
+```
+
+## Distributions of variables {.tabset}
+
+We will visualize distributions of variables separately for people who left the company and who stayed to be able to see differences between these groups of people on charts before doing the actual modelling.
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+HR.left <- subset(HR, left == 1)
+HR.stayed <- subset(HR, left == 0)
+```
+
+### Satisfaction level
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+satisfaction.left <- ggplot(HR.left, aes(HR.left$satisfaction_level)) + geom_density(kernel = "gaussian", fill = '#B8274C', alpha = 0.3) + labs(x = "Satisfaction level of employees who left") + xlim(0, 1)
+satisfaction.left
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+satisfaction.stayed <-ggplot(HR.stayed, aes(HR.stayed$satisfaction_level)) + geom_density(kernel = "gaussian", fill = '#006E51', alpha = 0.3) + labs(x = "Satisfaction level of employees who stayed") + xlim(0, 1)
+satisfaction.stayed
+```
+
+### Last evaluation
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+evaluation.left <- ggplot(HR.left, aes(HR.left$last_evaluation)) + geom_density(kernel = "gaussian", fill = '#B8274C', alpha = 0.3) + labs(x = "Last evaluation of employees who left") + xlim(0, 1)
+evaluation.left
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+evaluation.stayed <-ggplot(HR.stayed, aes(HR.stayed$last_evaluation)) + geom_density(kernel = "gaussian", fill = '#006E51', alpha = 0.3) + labs(x = "Last evaluation of employees who stayed") + xlim(0, 1)
+evaluation.stayed
+```
+
+### Number of projects
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+projects.left <- ggplot(HR.left, aes(HR.left$number_project)) + geom_histogram() + xlim(0, 7)
+projects.left
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+projects.stayed <-ggplot(HR.stayed, aes(HR.stayed$last_evaluation)) + geom_density(kernel = "gaussian", fill = '#006E51', alpha = 0.3) + labs(x = "Last evaluation of employees who stayed") + xlim(0, 1)
+projects.stayed
+```
+
+### Monthly hours
+
+(tab content)
+
+### Time at company
+
+(tab content)
+
+### Work accidents 
+
+(tab content)
+
+### Promotions 
+
+(tab content)
+
+### Department
+
+(tab content)
+
+### Salary
+
+(tab content)
+
+### Left or not
+
+(tab content)
+
+
+## Correlations
+
+Let's check correlations between variables.
+
+```{r}
+CorTable <- cor(HR[,1:8])
+corrplot(CorTable, method = "number", type= "upper")
+```
+
+`r if (max(CorTable [CorTable != 1]) < 0.7) { "Analysis shows that there are no strong correlation (0.7 or avobe) between any pair of numeric variables."} else "Analysis shows that strong correlation (0.7 or above) between numeric variables of the set is observed."`
 
 
 # Data preparation
