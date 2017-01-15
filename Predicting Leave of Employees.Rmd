@@ -51,7 +51,7 @@ Both project work and this report are structured according to following process 
 + Dimensionality reduction (necessity to be discussed).
 + Separation of dataset into training and test.
 
-**4. Modelling.** Building the predictive model based on training dataset with target attribute answering the chosen business question. We will use classification trees methodology.
+**4. Modelling.** Building the predictive model based on training dataset with target attribute answering the chosen business question. We use classification trees methodology.
 
 + Decision on predictive quality of model to be considered acceptable.
 + Selection of classification tree algorithm and R package to be used.
@@ -82,7 +82,7 @@ Business problem that this project intends to solve is **prediction of employees
 
 For this project we use dataset "" published by Ludovic Benistant on kaggle ([source](https://www.kaggle.com/ludobenistant/hr-analytics/)) under CC BY-SA 4.0 License. 
 
-## Summary of dataset characteristics
+## Dataset size and variables
 
 Dataset contains `r nrow(HR)` observations. Each observation represents information about one employee across `r ncol(HR)` variables. Variables are (we indicate code of variable in dataset in parentheses):
 
@@ -105,12 +105,20 @@ str(HR)
 
 ## Distributions of variables {.tabset}
 
+First, let's generate summary report for all variables.
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+summary(HR)
+```
+
 We will visualize distributions of variables separately for people who left the company and who stayed to be able to see differences between these groups of people on charts before doing the actual modelling.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 HR.left <- subset(HR, left == 1)
 HR.stayed <- subset(HR, left == 0)
 ```
+
+There are `r nrow(HR.left)` observations of employees who left the company and `r nrow(HR.stayed)` observations of employees who stayed.
 
 ### Satisfaction level
 
@@ -139,43 +147,87 @@ evaluation.stayed
 ### Number of projects
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
-projects.left <- ggplot(HR.left, aes(HR.left$number_project)) + geom_histogram() + xlim(0, 7)
+projects.left <- ggplot(HR.left, aes(HR.left$number_project)) + geom_histogram(fill = '#B8274C', binwidth = .5) + scale_x_continuous(breaks = seq(0,max(max(HR.left$number_project),max(HR.stayed$number_project)),by = 1), limits = c(0, max(max(HR.left$number_project),max(HR.stayed$number_project))+1)) + labs(x = "Number of projects of employees who left")
 projects.left
 ```
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
-projects.stayed <-ggplot(HR.stayed, aes(HR.stayed$last_evaluation)) + geom_density(kernel = "gaussian", fill = '#006E51', alpha = 0.3) + labs(x = "Last evaluation of employees who stayed") + xlim(0, 1)
+projects.stayed <- ggplot(HR.stayed, aes(HR.stayed$number_project)) + geom_histogram(fill = '#006E51', binwidth = .5) + scale_x_continuous(breaks = seq(0,max(max(HR.left$number_project),max(HR.stayed$number_project)),by = 1), limits = c(0, max(max(HR.left$number_project),max(HR.stayed$number_project))+1)) + labs(x = "Number of projects of employees who stayed")
 projects.stayed
 ```
 
 ### Monthly hours
 
-(tab content)
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+hours.left <- ggplot(HR.left, aes(HR.left$average_montly_hours)) + geom_density(kernel = "gaussian", fill = '#B8274C', alpha = 0.3) + labs(x = "Average monthly hours of employees who left") + xlim(min( min(HR.left$average_montly_hours), min(HR.stayed$average_montly_hours)), max( max(HR.left$average_montly_hours), max(HR.stayed$average_montly_hours)))
+hours.left
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+hours.stayed <- ggplot(HR.stayed, aes(HR.stayed$average_montly_hours)) + geom_density(kernel = "gaussian", fill = '#006E51', alpha = 0.3) + labs(x = "Average monthly hours of employees who stayed") + xlim(min( min(HR.left$average_montly_hours), min(HR.stayed$average_montly_hours)), max( max(HR.left$average_montly_hours), max(HR.stayed$average_montly_hours)))
+hours.stayed
+```
 
 ### Time at company
 
-(tab content)
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+time.left <- ggplot(HR.left, aes(HR.left$time_spend_company)) + geom_histogram(fill = '#B8274C', binwidth = .5) + scale_x_continuous(breaks = seq(0,max(max(HR.left$time_spend_company),max(HR.stayed$time_spend_company)),by = 1), limits = c(0, max(max(HR.left$time_spend_company),max(HR.stayed$time_spend_company))+1)) + labs(x = "Time spent at the company (in years) of employees who left")
+time.left
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+time.stayed <- ggplot(HR.stayed, aes(HR.stayed$time_spend_company)) + geom_histogram(fill = '#006E51', binwidth = .5) + scale_x_continuous(breaks = seq(0,max(max(HR.left$time_spend_company),max(HR.stayed$time_spend_company)),by = 1), limits = c(0, max(max(HR.left$time_spend_company),max(HR.stayed$time_spend_company))+1)) + labs(x = "Time spent at the company (in years) of employees who stayed")
+time.stayed
+```
 
 ### Work accidents 
 
-(tab content)
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+accidents.left <- ggplot(HR.left, aes(HR.left$Work_accident)) + geom_histogram(fill = '#B8274C', binwidth = .5) + labs(x = "Number of employees who experienced and did not experience work accident of employees who left")
+accidents.left
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+accidents.stayed <- ggplot(HR.stayed, aes(HR.stayed$Work_accident)) + geom_histogram(fill = '#006E51', binwidth = .5) + labs(x = "Number of employees who experienced and did not experience work accident of employees who stayed")
+accidents.stayed
+```
 
 ### Promotions 
 
-(tab content)
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+promotion.left <- ggplot(HR.left, aes(HR.left$promotion_last_5years)) + geom_histogram(fill = '#B8274C', binwidth = .5) + labs(x = "Number of employees who were or were not promoted during last 5 years of employees who left")
+promotion.left
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+promotion.stayed <- ggplot(HR.stayed, aes(HR.stayed$promotion_last_5years)) + geom_histogram(fill = '#006E51', binwidth = .5) + labs(x = "Number of employees who were or were not promoted during last 5 years of employees who stayed")
+promotion.stayed
+```
 
 ### Department
 
-(tab content)
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+Departments <- c("sales", "technical", "support", "IT", "product_mng", "marketing", "RandD", "accounting", "hr","management")
+department.left <- ggplot(HR.left, aes(HR.left$sales)) + geom_bar(stat = "count", fill = '#B8274C') + labs(x = "Department of employees who left") + scale_x_discrete(limits = Departments)
+department.left
+```
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+department.stayed <- ggplot(HR.stayed, aes(HR.stayed$sales)) + geom_bar(stat = "count", fill = '#006E51') + labs(x = "Department of employees who stayed") + scale_x_discrete(limits = Departments)
+department.stayed
+```
 
 ### Salary
 
-(tab content)
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+salary.left <- ggplot(HR.left, aes(HR.left$salary)) + geom_bar(stat = "count", fill = '#B8274C') + labs(x = "Salary level of employees who left") + scale_x_discrete(limits = c("low", "medium", "high"))
+salary.left
+```
 
-### Left or not
-
-(tab content)
-
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+salary.stayed <- ggplot(HR.stayed, aes(HR.stayed$salary)) + geom_bar(stat = "count", fill = '#006E51') + labs(x = "Salary level of employees who stayed") + scale_x_discrete(limits = c("low", "medium", "high"))
+salary.stayed
+```
 
 ## Correlations
 
