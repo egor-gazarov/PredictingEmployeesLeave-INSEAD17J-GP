@@ -82,7 +82,7 @@ Business problem that this project intends to solve is **prediction of employees
 
 ## Source of data
 
-For this project we use dataset "" published by Ludovic Benistant on kaggle ([source](https://www.kaggle.com/ludobenistant/hr-analytics/)) under CC BY-SA 4.0 License. 
+For this project we use dataset 'Human Resources Analytics' published by Ludovic Benistant on kaggle ([source](https://www.kaggle.com/ludobenistant/hr-analytics/)) under CC BY-SA 4.0 License. 
 
 ## Dataset size and variables
 
