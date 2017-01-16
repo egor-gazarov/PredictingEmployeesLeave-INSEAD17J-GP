@@ -51,7 +51,9 @@ Both project work and this report are structured according to following process 
 + Dimensionality reduction (necessity to be discussed).
 + Separation of dataset into training and test.
 
-**4. Modelling.** Building the predictive model based on training dataset with target attribute answering the chosen business question. We use classification trees methodology.
+**4. Modelling.** Building the predictive model based on training dataset with target attribute answering the chosen business question. 
+
+For classification trees methodology, modelling process include following steps.
 
 + Decision on predictive quality of model to be considered acceptable.
 + Selection of classification tree algorithm and R package to be used.
