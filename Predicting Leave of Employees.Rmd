@@ -1,6 +1,6 @@
 ---
 title: "Predicting Leave of Employees"
-author: "Egor Gazarov; William Handjaja; Dmitry Kalachev; Nathan Kung (INSEAD MBA Class of July 2017)"
+author: "Egor Gazarov, William Handjaja, Dmitry Kalachev, Nathan Kung (INSEAD MBA Class of July 2017); Jorge Bravo"
 date: "January 31, 2017"
 output: 
  html_document:
