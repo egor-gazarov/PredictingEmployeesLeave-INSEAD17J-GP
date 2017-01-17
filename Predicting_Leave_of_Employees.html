@@ -236,10 +236,16 @@ rm(list = ls())
 
 # loading or installing packages used in the project
 # make sure to list all required packages in ./R/library.R
-source(&quot;./R/library.R&quot;)
+# source(&quot;./R/library.R&quot;)
 
 # loading the dataset for the project
-HR &lt;- read.csv(&quot;./Data/HR_dataset.csv&quot;, sep=&quot;,&quot;, dec=&quot;.&quot;)</code></pre>
+HR &lt;- read.csv(&quot;./Data/HR_dataset.csv&quot;, sep=&quot;,&quot;, dec=&quot;.&quot;)
+
+# loading required libraries
+library(&quot;ggplot2&quot;)
+library(&quot;corrplot&quot;)
+library(&quot;caret&quot;)
+library(&quot;C50&quot;)</code></pre>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <div id="brief-description-of-the-project" class="section level2">
@@ -253,11 +259,11 @@ HR &lt;- read.csv(&quot;./Data/HR_dataset.csv&quot;, sep=&quot;,&quot;, dec=&quo
 <p><strong>2. Data undestanding.</strong> Initial analysis of the dataset used in the project using basic descriptive statistics and visualizations.</p>
 <p><strong>3. Data preparation.</strong> Preparation of the dataset for subsequent modeling.</p>
 <ul>
-<li>Check for missing and empty values, exclusion of corresponding observations.</li>
+<li>Check for missing values, exclusion of corresponding observations.</li>
 <li>Check for outliers, decision on their participation in analysis.</li>
 <li>Conversion of non-numerical attributes to numerical dummy variables.</li>
-<li>Range normalization of all attributes (z-score normalization).</li>
-<li>Dimensionality reduction (necessity to be discussed).</li>
+<li>Range normalization (if required).</li>
+<li>Dimensionality reduction (if required).</li>
 <li>Separation of dataset into training and test.</li>
 </ul>
 <p><strong>4. Modelling.</strong> Building the predictive model based on training dataset with target attribute answering the chosen business question.</p>
@@ -446,11 +452,226 @@ corrplot(CorTable, method = &quot;number&quot;, type= &quot;upper&quot;)</code><
 </div>
 <div id="data-preparation" class="section level1">
 <h1>Data preparation</h1>
-<p>Work in progress</p>
+<div id="check-for-missing-values" class="section level2">
+<h2>Check for missing values</h2>
+<p>Let’s count missing values in the dataset.</p>
+<pre class="r"><code>sum(is.na(HR))</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p>Since we don’t have missing values, there is no need to exclude any observations from the dataset.</p>
+</div>
+<div id="check-for-outliers" class="section level2">
+<h2>Check for outliers</h2>
+<p>Graphical analysis of variables’ distributions done on Data Understanding step did not show any suspecious outliers.</p>
+</div>
+<div id="creation-of-dummy-variables" class="section level2">
+<h2>Creation of dummy variables</h2>
+<p>Previously we identified, that two variables are categorical now: Department and Salary. Now we convert them to dummy variables, creating two dummy variables for Salary and nine dummy variables for Department.</p>
+<pre class="r"><code>dummy &lt;- dummyVars(&quot; ~ .&quot;, data = HR, fullRank = TRUE)
+HR.dm &lt;- data.frame(predict(dummy, newdata = HR))
+str(HR.dm)</code></pre>
+<pre><code>## 'data.frame':    14999 obs. of  19 variables:
+##  $ satisfaction_level   : num  0.38 0.8 0.11 0.72 0.37 0.41 0.1 0.92 0.89 0.42 ...
+##  $ last_evaluation      : num  0.53 0.86 0.88 0.87 0.52 0.5 0.77 0.85 1 0.53 ...
+##  $ number_project       : num  2 5 7 5 2 2 6 5 5 2 ...
+##  $ average_montly_hours : num  157 262 272 223 159 153 247 259 224 142 ...
+##  $ time_spend_company   : num  3 6 4 5 3 3 4 5 5 3 ...
+##  $ Work_accident        : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ left                 : num  1 1 1 1 1 1 1 1 1 1 ...
+##  $ promotion_last_5years: num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ sales.hr             : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ sales.IT             : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ sales.management     : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ sales.marketing      : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ sales.product_mng    : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ sales.RandD          : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ sales.sales          : num  1 1 1 1 1 1 1 1 1 1 ...
+##  $ sales.support        : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ sales.technical      : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ salary.low           : num  1 0 0 1 1 1 1 1 1 1 ...
+##  $ salary.medium        : num  0 1 1 0 0 0 0 0 0 0 ...</code></pre>
+</div>
+<div id="range-normalization" class="section level2">
+<h2>Range normalization</h2>
+<p>Classification tree methodology does not require scale normalization of input data, so we do not perform this step.</p>
+</div>
+<div id="dimensionality-reduction" class="section level2">
+<h2>Dimensionality reduction</h2>
+<p>Having small number of variables, we decided to avoid dimensionality reduction.</p>
+</div>
+<div id="correction-of-variables-format" class="section level2">
+<h2>Correction of variables format</h2>
+<p>For using classification tree methodology, we convert part of variables to factor type.</p>
+<pre class="r"><code>columns_to_factors &lt;- c(6:19)
+HR.dm[,columns_to_factors] &lt;- lapply(HR.dm[,columns_to_factors], factor)
+str(HR.dm)</code></pre>
+<pre><code>## 'data.frame':    14999 obs. of  19 variables:
+##  $ satisfaction_level   : num  0.38 0.8 0.11 0.72 0.37 0.41 0.1 0.92 0.89 0.42 ...
+##  $ last_evaluation      : num  0.53 0.86 0.88 0.87 0.52 0.5 0.77 0.85 1 0.53 ...
+##  $ number_project       : num  2 5 7 5 2 2 6 5 5 2 ...
+##  $ average_montly_hours : num  157 262 272 223 159 153 247 259 224 142 ...
+##  $ time_spend_company   : num  3 6 4 5 3 3 4 5 5 3 ...
+##  $ Work_accident        : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ left                 : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 2 2 2 2 2 2 2 2 2 2 ...
+##  $ promotion_last_5years: Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ sales.hr             : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ sales.IT             : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ sales.management     : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ sales.marketing      : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ sales.product_mng    : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ sales.RandD          : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ sales.sales          : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 2 2 2 2 2 2 2 2 2 2 ...
+##  $ sales.support        : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ sales.technical      : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ salary.low           : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 2 1 1 2 2 2 2 2 2 2 ...
+##  $ salary.medium        : Factor w/ 2 levels &quot;0&quot;,&quot;1&quot;: 1 2 2 1 1 1 1 1 1 1 ...</code></pre>
+</div>
+<div id="separation-into-training-and-test-datasets" class="section level2">
+<h2>Separation into training and test datasets</h2>
+<p>Let’s separate dataset into 80% training dataset and 20% test dataset.</p>
+<pre class="r"><code>#let's also format target variable as factor before dataset separation
+HR$left &lt;- as.factor(HR$left)
+
+set.seed(777)
+train.index &lt;- createDataPartition(HR$left, p = .8, list = FALSE, times = 1)
+TrainDS &lt;- HR.dm[ train.index, ]
+TestDS  &lt;- HR.dm[-train.index, ]</code></pre>
+<p>There are 12000 observations in training dataset and 2999 observations in test dataset.</p>
+<p>We can check that both datasets are roughly similar in distribution of target variable (whether employee left).</p>
+<pre class="r"><code>round(prop.table(table(TrainDS$left)),3)</code></pre>
+<pre><code>## 
+##     0     1 
+## 0.762 0.238</code></pre>
+<pre class="r"><code>round(prop.table(table(TestDS$left)),3)</code></pre>
+<pre><code>## 
+##     0     1 
+## 0.762 0.238</code></pre>
+</div>
 </div>
 <div id="modelling" class="section level1">
 <h1>Modelling</h1>
-<p>Work in progress</p>
+<p>!!DRAFT!! VERSION</p>
+<pre class="r"><code>ClTree &lt;- C5.0(TrainDS[-7],TrainDS$left)
+summary(ClTree)</code></pre>
+<pre><code>## 
+## Call:
+## C5.0.default(x = TrainDS[-7], y = TrainDS$left)
+## 
+## 
+## C5.0 [Release 2.07 GPL Edition]      Tue Jan 17 23:59:44 2017
+## -------------------------------
+## 
+## Class specified by attribute `outcome'
+## 
+## Read 12000 cases (19 attributes) from undefined.data
+## 
+## Decision tree:
+## 
+## average_montly_hours &gt; 287: 1 (268)
+## average_montly_hours &lt;= 287:
+## :...satisfaction_level &gt; 0.46:
+##     :...time_spend_company &lt;= 4: 0 (7060/96)
+##     :   time_spend_company &gt; 4:
+##     :   :...last_evaluation &lt;= 0.8: 0 (593/23)
+##     :       last_evaluation &gt; 0.8:
+##     :       :...time_spend_company &gt; 6: 0 (144)
+##     :           time_spend_company &lt;= 6:
+##     :           :...average_montly_hours &gt; 215:
+##     :               :...number_project &lt;= 3:
+##     :               :   :...salary.low = 0: 0 (20)
+##     :               :   :   salary.low = 1:
+##     :               :   :   :...satisfaction_level &lt;= 0.63: 1 (4)
+##     :               :   :       satisfaction_level &gt; 0.63: 0 (8)
+##     :               :   number_project &gt; 3:
+##     :               :   :...satisfaction_level &gt; 0.72: 1 (671/19)
+##     :               :       satisfaction_level &lt;= 0.72:
+##     :               :       :...satisfaction_level &lt;= 0.71: 0 (23/3)
+##     :               :           satisfaction_level &gt; 0.71: 1 (21)
+##     :               average_montly_hours &lt;= 215:
+##     :               :...time_spend_company &gt; 5: 0 (37)
+##     :                   time_spend_company &lt;= 5:
+##     :                   :...number_project &gt; 3: 0 (32/1)
+##     :                       number_project &lt;= 3:
+##     :                       :...average_montly_hours &lt;= 146: 0 (9)
+##     :                           average_montly_hours &gt; 146:
+##     :                           :...average_montly_hours &lt;= 185: 1 (12/1)
+##     :                               average_montly_hours &gt; 185: 0 (3)
+##     satisfaction_level &lt;= 0.46:
+##     :...number_project &lt;= 2:
+##         :...last_evaluation &gt; 0.57: 0 (98/4)
+##         :   last_evaluation &lt;= 0.57:
+##         :   :...last_evaluation &lt;= 0.44: 0 (33)
+##         :       last_evaluation &gt; 0.44:
+##         :       :...satisfaction_level &lt;= 0.35:
+##         :           :...satisfaction_level &lt;= 0.15: 1 (4)
+##         :           :   satisfaction_level &gt; 0.15: 0 (21/5)
+##         :           satisfaction_level &gt; 0.35:
+##         :           :...average_montly_hours &gt; 159:
+##         :               :...average_montly_hours &lt;= 165: 1 (46)
+##         :               :   average_montly_hours &gt; 165: 0 (13/1)
+##         :               average_montly_hours &lt;= 159:
+##         :               :...average_montly_hours &gt; 127: 1 (1116/3)
+##         :                   average_montly_hours &lt;= 127:
+##         :                   :...average_montly_hours &lt;= 125: 0 (11)
+##         :                       average_montly_hours &gt; 125: 1 (56)
+##         number_project &gt; 2:
+##         :...satisfaction_level &lt;= 0.11: 1 (464)
+##             satisfaction_level &gt; 0.11:
+##             :...average_montly_hours &lt;= 131: 0 (154)
+##                 average_montly_hours &gt; 131:
+##                 :...average_montly_hours &gt; 141:
+##                     :...last_evaluation &lt;= 0.98:
+##                     :   :...number_project &lt;= 5: 0 (747/34)
+##                     :   :   number_project &gt; 5:
+##                     :   :   :...number_project &lt;= 6: 0 (225/13)
+##                     :   :       number_project &gt; 6: 1 (10)
+##                     :   last_evaluation &gt; 0.98:
+##                     :   :...number_project &gt; 4: 0 (11)
+##                     :       number_project &lt;= 4:
+##                     :       :...time_spend_company &lt;= 4: 1 (10/2)
+##                     :           time_spend_company &gt; 4: 0 (4)
+##                     average_montly_hours &lt;= 141:
+##                     :...number_project &lt;= 3: 0 (20)
+##                         number_project &gt; 3:
+##                         :...Work_accident = 1: 0 (6)
+##                             Work_accident = 0:
+##                             :...sales.technical = 1: 1 (9/2)
+##                                 sales.technical = 0:
+##                                 :...salary.medium = 1: 0 (10)
+##                                     salary.medium = 0:
+##                                     :...sales.support = 0: 0 (22/8)
+##                                         sales.support = 1: 1 (5)
+## 
+## 
+## Evaluation on training data (12000 cases):
+## 
+##      Decision Tree   
+##    ----------------  
+##    Size      Errors  
+## 
+##      38  215( 1.8%)   &lt;&lt;
+## 
+## 
+##     (a)   (b)    &lt;-classified as
+##    ----  ----
+##    9116    27    (a): class 0
+##     188  2669    (b): class 1
+## 
+## 
+##  Attribute usage:
+## 
+##  100.00% average_montly_hours
+##   97.77% satisfaction_level
+##   72.09% time_spend_company
+##   33.18% last_evaluation
+##   32.48% number_project
+##    0.43% Work_accident
+##    0.38% sales.technical
+##    0.31% salary.medium
+##    0.27% salary.low
+##    0.22% sales.support
+## 
+## 
+## Time: 0.3 secs</code></pre>
 </div>
 <div id="evaluation" class="section level1">
 <h1>Evaluation</h1>

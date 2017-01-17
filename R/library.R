@@ -1,17 +1,22 @@
-# Loading all required packages
-# If loading failes - installing these packages
-
-foo <- function(x){
-  for( i in x ){
-    #  require returns TRUE invisibly if it was able to load package
-    if( ! require( i , character.only = TRUE ) ){
-      #  If package was not able to be loaded then re-install
-      install.packages( i , dependencies = TRUE )
-      #  Load package after installing
-      require( i , character.only = TRUE )
+# installs all necessary libraries from CRAN or Github
+get_libraries <- function(filenames_list) suppressPackageStartupMessages({ 
+  lapply(filenames_list, function(thelibrary){    
+    thelibrary.split <- strsplit(thelibrary, "/")[[1]]
+    if (length(thelibrary.split) > 1) {
+      # install from Github
+      if (!suppressWarnings(require(thelibrary.split[2], character.only=TRUE))) {
+        devtools::install_github(thelibrary, quiet=TRUE)
+        library(thelibrary.split[2], character.only=TRUE)
+      }
+    } else {
+      # install from CRAN
+      if (!suppressWarnings(require(thelibrary, character.only=TRUE))) {
+        install.packages(thelibrary, repos="http://cran.r-project.org/", quiet=TRUE)
+        library(thelibrary, character.only=TRUE)
+      }
     }
-  }
-}
+  })
+})
 
-#  Then try/install packages...
-foo( c("googleVis" , "ggplot2", "corrplot", "shiny") )
+libraries_used=c("ggplot2", "corrplot", "caret", "C50")
+get_libraries(libraries_used)

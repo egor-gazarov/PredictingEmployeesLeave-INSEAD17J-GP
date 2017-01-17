@@ -20,11 +20,16 @@ rm(list = ls())
 
 # loading or installing packages used in the project
 # make sure to list all required packages in ./R/library.R
-source("./R/library.R")
+# source("./R/library.R")
 
 # loading the dataset for the project
 HR <- read.csv("./Data/HR_dataset.csv", sep=",", dec=".")
 
+# loading required libraries
+library("ggplot2")
+library("corrplot")
+library("caret")
+library("C50")
 ```
 
 # Introduction
@@ -44,11 +49,11 @@ Both project work and this report are structured according to following process 
 
 **3. Data preparation.** Preparation of the dataset for subsequent modeling.
 
-+ Check for missing and empty values, exclusion of corresponding observations.
++ Check for missing values, exclusion of corresponding observations.
 + Check for outliers, decision on their participation in analysis.
 + Conversion of non-numerical attributes to numerical dummy variables.
-+ Range normalization of all attributes (z-score normalization).
-+ Dimensionality reduction (necessity to be discussed).
++ Range normalization (if required).
++ Dimensionality reduction (if required).
 + Separation of dataset into training and test.
 
 **4. Modelling.** Building the predictive model based on training dataset with target attribute answering the chosen business question. 
@@ -245,12 +250,79 @@ corrplot(CorTable, method = "number", type= "upper")
 
 # Data preparation
 
-Work in progress
+## Check for missing values
 
+Let's count missing values in the dataset.
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+sum(is.na(HR))
+```
+
+Since we don't have missing values, there is no need to exclude any observations from the dataset.
+
+## Check for outliers
+
+Graphical analysis of variables' distributions done on Data Understanding step did not show any suspecious outliers.
+
+## Creation of dummy variables
+
+Previously we identified, that two variables are categorical now: Department and Salary. Now we convert them to dummy variables, creating two dummy variables for Salary and nine dummy variables for Department.
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+dummy <- dummyVars(" ~ .", data = HR, fullRank = TRUE)
+HR.dm <- data.frame(predict(dummy, newdata = HR))
+str(HR.dm)
+```
+
+## Range normalization
+
+Classification tree methodology does not require scale normalization of input data, so we do not perform this step.
+
+## Dimensionality reduction
+
+Having small number of variables, we decided to avoid dimensionality reduction. 
+
+## Correction of variables format
+
+For using classification tree methodology, we convert part of variables to factor type.
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+columns_to_factors <- c(6:19)
+HR.dm[,columns_to_factors] <- lapply(HR.dm[,columns_to_factors], factor)
+str(HR.dm)
+```
+
+## Separation into training and test datasets
+
+Let's separate dataset into 80% training dataset and 20% test dataset.
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+#let's also format target variable as factor before dataset separation
+HR$left <- as.factor(HR$left)
+
+set.seed(777)
+train.index <- createDataPartition(HR$left, p = .8, list = FALSE, times = 1)
+TrainDS <- HR.dm[ train.index, ]
+TestDS  <- HR.dm[-train.index, ]
+```
+
+There are `r nrow(TrainDS)` observations in training dataset and `r nrow(TestDS)` observations in test dataset.
+
+We can check that both datasets are roughly similar in distribution of target variable (whether employee left).
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+round(prop.table(table(TrainDS$left)),3)
+round(prop.table(table(TestDS$left)),3)
+```
 
 # Modelling
 
-Work in progress
+!!DRAFT!! VERSION
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+ClTree <- C5.0(TrainDS[-7],TrainDS$left)
+summary(ClTree)
+```
 
 
 # Evaluation
