@@ -231,21 +231,19 @@ div.tocify {
 
 <pre class="r"><code># basic preparatory commands
 
-# clearing the working environment
+# clear the working environment
 rm(list = ls())
 
-# loading or installing packages used in the project
-# make sure to list all required packages in ./R/library.R
-# source(&quot;./R/library.R&quot;)
-
-# loading the dataset for the project
+# load the dataset for the project
 HR &lt;- read.csv(&quot;./Data/HR_dataset.csv&quot;, sep=&quot;,&quot;, dec=&quot;.&quot;)
 
-# loading required libraries
+# load required packages
+# install required packages if loading failed
+# all packages sould be listed inside install_load()
 source(&quot;./R/library.R&quot;)
 install_load(&quot;ggplot2&quot;, &quot;corrplot&quot;, &quot;caret&quot;, &quot;C50&quot;, &quot;cwhmisc&quot;, &quot;stringr&quot;, &quot;gmodels&quot;)
 
-#load file with function we'll need to visualize the decision tree
+# load file with function we'll use in work with classification tree
 source(&quot;./R/C5.0.graphviz.R&quot;)</code></pre>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
@@ -270,18 +268,15 @@ source(&quot;./R/C5.0.graphviz.R&quot;)</code></pre>
 <p><strong>4. Modelling.</strong> Building the predictive model based on training dataset with target attribute answering the chosen business question.</p>
 <p>For classification trees methodology, modelling process include following steps.</p>
 <ul>
-<li>Decision on predictive quality of model to be considered acceptable.</li>
-<li>Selection of classification tree algorithm and R package to be used.</li>
-<li>Selection of explanatory variables.</li>
-<li>Application of algorithm to training dataset and getting the model.</li>
-<li>Generation of text and graphical visualizations of decision trees, checking for business sense.</li>
+<li>Choice of methodology and tool.</li>
+<li>First application of tool to dataset.</li>
+<li>Generation of decision tree visualization, decision on simplification possibility.</li>
+<li>Simplification of the model if possible.</li>
 <li>Preliminary evaluation of the model using confusion matrix and test dataset. Decision to proceed (if evaluation results are satisfactory) or repeating the modelling process.</li>
 </ul>
 <p><strong>5. Evaluation.</strong> Check of models predictive accuracy on test dataset.</p>
 <ul>
 <li>Generation of confusion matrix using built model and test dataset.</li>
-<li>Plotting receiver operating characteristic curve for the model and test dataset.</li>
-<li>Comparing evaluation results with target characteristics.</li>
 <li>Decision on accepting the model or repeating the modelling process.</li>
 </ul>
 <p><strong>6. Deployment.</strong> Conclusion on project results and description of potential deployment of built model in practice. Remarks about potential ways to improve process and model of this project.</p>
@@ -444,7 +439,7 @@ corrplot(CorTable, method = &quot;number&quot;, type= &quot;upper&quot;)</code><
 </div>
 <div id="check-for-outliers" class="section level2">
 <h2>Check for outliers</h2>
-<p>Graphical analysis of variables’ distributions done on Data Understanding step did not show any suspecious outliers.</p>
+<p>Graphical analysis of variables’ distributions done on Data Understanding step did not show any suspicious outliers.</p>
 </div>
 <div id="creation-of-dummy-variables" class="section level2">
 <h2>Creation of dummy variables</h2>
@@ -511,10 +506,7 @@ str(HR.dm)</code></pre>
 <div id="separation-into-training-and-test-datasets" class="section level2">
 <h2>Separation into training and test datasets</h2>
 <p>Let’s separate dataset into 80% training dataset and 20% test dataset.</p>
-<pre class="r"><code>#let's also format target variable as factor before dataset separation
-HR$left &lt;- as.factor(HR$left)
-
-set.seed(777)
+<pre class="r"><code>set.seed(777)
 train.index &lt;- createDataPartition(HR$left, p = .8, list = FALSE, times = 1)
 TrainDS &lt;- HR.dm[ train.index, ]
 TestDS  &lt;- HR.dm[-train.index, ]</code></pre>
@@ -523,16 +515,36 @@ TestDS  &lt;- HR.dm[-train.index, ]</code></pre>
 <pre class="r"><code>round(prop.table(table(TrainDS$left)),3)</code></pre>
 <pre><code>## 
 ##     0     1 
-## 0.762 0.238</code></pre>
+## 0.764 0.236</code></pre>
 <pre class="r"><code>round(prop.table(table(TestDS$left)),3)</code></pre>
 <pre><code>## 
 ##     0     1 
-## 0.762 0.238</code></pre>
+## 0.753 0.247</code></pre>
 </div>
 </div>
 <div id="modelling-decision-tree" class="section level1">
 <h1>Modelling: Decision Tree</h1>
-<p>!!DRAFT!! VERSION</p>
+<div id="choice-of-methodology-and-tool" class="section level2">
+<h2>Choice of methodology and tool</h2>
+<p>Possible methodologies for solving classification problems include logistic regression, support vector machine, decision tree, Naive Bayes classification, k-nearest neighbor. For the purpose of this exercise we will use decision tree methodology. It should provide an output in a form of clear set of rules, that should be easy to communicate to management and easy to implement (for example, in company’s HR system).</p>
+<p>Our model should predict categorical response variable (if employee leaves) with two possible outcomes: yes (1) or no (0). For that reason, decision tree should be a classification tree.</p>
+<p>There are many packages in R for modeling decision trees: for example, rpart, party, RWeka, ipred, randomForest, gbm, C5.0. C5.0 is one of most up-to-date algorithms with following advantages (<a href="http://en.proft.me/2016/11/9/classification-using-decision-trees-r/">source</a>):</p>
+<ul>
+<li>An all-purpose classifier that does well on most problems.</li>
+<li>Highly automatic learning process, which can handle numeric or nominal features, as well as missing data.</li>
+<li>Less data cleaning required.</li>
+<li>Excludes unimportant features.</li>
+<li>Can be used on both small and large datasets.</li>
+<li>Non parametric method (have no assumptions about the space distribution and the classifier structure).</li>
+<li>Results in a model that can be interpreted without a mathematical background (for relatively small trees).</li>
+<li>More efficient than other complex models.</li>
+</ul>
+<p>C4.5, which was a C5.0 predecessor, became quite popular after ranking #1 in the Top 10 Algorithms in Data Mining pre-eminent paper published by Springer LNCS in 2008 (<a href="https://en.wikipedia.org/wiki/C4.5_algorithm">source</a>). Taking all advantages into account, we are using C5.0 algorithm for the modelling.</p>
+<p>C5.0 builds decision trees from a set of training data using the concept of information entropy. At each node of the tree, C5.0 chooses the attribute of the data that most effectively splits its set of samples into subsets enriched in one class or the other. The splitting criterion is the normalized information gain (difference in entropy). The attribute with the highest normalized information gain is chosen to make the decision. The C5.0 algorithm then recurs on the smaller sublists.</p>
+</div>
+<div id="first-application-of-tool-to-dataset" class="section level2">
+<h2>First application of tool to dataset</h2>
+<p>For a first iteration, we apply C5.0 algorithm to the whole training dataset. Variable “Leave” serves as target variables and all other variables - as predictors. After the initial modelling we’ll see which predicting variables are less helpful in predicting leave of employees and can be removed from modelling process.</p>
 <pre class="r"><code>ClTree1 &lt;- C5.0(TrainDS[-7],TrainDS$left)
 summary(ClTree1)</code></pre>
 <pre><code>## 
@@ -540,7 +552,7 @@ summary(ClTree1)</code></pre>
 ## C5.0.default(x = TrainDS[-7], y = TrainDS$left)
 ## 
 ## 
-## C5.0 [Release 2.07 GPL Edition]      Wed Jan 18 13:17:55 2017
+## C5.0 [Release 2.07 GPL Edition]      Wed Jan 18 23:22:59 2017
 ## -------------------------------
 ## 
 ## Class specified by attribute `outcome'
@@ -549,80 +561,60 @@ summary(ClTree1)</code></pre>
 ## 
 ## Decision tree:
 ## 
-## average_montly_hours &gt; 287: 1 (268)
+## average_montly_hours &gt; 287: 1 (259)
 ## average_montly_hours &lt;= 287:
-## :...satisfaction_level &gt; 0.46:
-##     :...time_spend_company &lt;= 4: 0 (7060/96)
-##     :   time_spend_company &gt; 4:
-##     :   :...last_evaluation &lt;= 0.8: 0 (593/23)
-##     :       last_evaluation &gt; 0.8:
-##     :       :...time_spend_company &gt; 6: 0 (144)
-##     :           time_spend_company &lt;= 6:
-##     :           :...average_montly_hours &gt; 215:
-##     :               :...number_project &lt;= 3:
-##     :               :   :...salary.low = 0: 0 (20)
-##     :               :   :   salary.low = 1:
-##     :               :   :   :...satisfaction_level &lt;= 0.63: 1 (4)
-##     :               :   :       satisfaction_level &gt; 0.63: 0 (8)
-##     :               :   number_project &gt; 3:
-##     :               :   :...satisfaction_level &gt; 0.72: 1 (671/19)
-##     :               :       satisfaction_level &lt;= 0.72:
-##     :               :       :...satisfaction_level &lt;= 0.71: 0 (23/3)
-##     :               :           satisfaction_level &gt; 0.71: 1 (21)
-##     :               average_montly_hours &lt;= 215:
-##     :               :...time_spend_company &gt; 5: 0 (37)
-##     :                   time_spend_company &lt;= 5:
-##     :                   :...number_project &gt; 3: 0 (32/1)
-##     :                       number_project &lt;= 3:
-##     :                       :...average_montly_hours &lt;= 146: 0 (9)
-##     :                           average_montly_hours &gt; 146:
-##     :                           :...average_montly_hours &lt;= 185: 1 (12/1)
-##     :                               average_montly_hours &gt; 185: 0 (3)
-##     satisfaction_level &lt;= 0.46:
-##     :...number_project &lt;= 2:
-##         :...last_evaluation &gt; 0.57: 0 (98/4)
-##         :   last_evaluation &lt;= 0.57:
-##         :   :...last_evaluation &lt;= 0.44: 0 (33)
-##         :       last_evaluation &gt; 0.44:
-##         :       :...satisfaction_level &lt;= 0.35:
-##         :           :...satisfaction_level &lt;= 0.15: 1 (4)
-##         :           :   satisfaction_level &gt; 0.15: 0 (21/5)
-##         :           satisfaction_level &gt; 0.35:
-##         :           :...average_montly_hours &gt; 159:
-##         :               :...average_montly_hours &lt;= 165: 1 (46)
-##         :               :   average_montly_hours &gt; 165: 0 (13/1)
-##         :               average_montly_hours &lt;= 159:
-##         :               :...average_montly_hours &gt; 127: 1 (1116/3)
-##         :                   average_montly_hours &lt;= 127:
-##         :                   :...average_montly_hours &lt;= 125: 0 (11)
-##         :                       average_montly_hours &gt; 125: 1 (56)
-##         number_project &gt; 2:
-##         :...satisfaction_level &lt;= 0.11: 1 (464)
-##             satisfaction_level &gt; 0.11:
-##             :...average_montly_hours &lt;= 131: 0 (154)
-##                 average_montly_hours &gt; 131:
-##                 :...average_montly_hours &gt; 141:
-##                     :...last_evaluation &lt;= 0.98:
-##                     :   :...number_project &lt;= 5: 0 (747/34)
-##                     :   :   number_project &gt; 5:
-##                     :   :   :...number_project &lt;= 6: 0 (225/13)
-##                     :   :       number_project &gt; 6: 1 (10)
-##                     :   last_evaluation &gt; 0.98:
-##                     :   :...number_project &gt; 4: 0 (11)
-##                     :       number_project &lt;= 4:
-##                     :       :...time_spend_company &lt;= 4: 1 (10/2)
-##                     :           time_spend_company &gt; 4: 0 (4)
-##                     average_montly_hours &lt;= 141:
-##                     :...number_project &lt;= 3: 0 (20)
+## :...satisfaction_level &lt;= 0.46:
+##     :...number_project &gt; 2:
+##     :   :...satisfaction_level &lt;= 0.11: 1 (466)
+##     :   :   satisfaction_level &gt; 0.11:
+##     :   :   :...last_evaluation &gt; 0.98:
+##     :   :       :...last_evaluation &lt;= 0.99: 0 (17/3)
+##     :   :       :   last_evaluation &gt; 0.99: 1 (11/3)
+##     :   :       last_evaluation &lt;= 0.98:
+##     :   :       :...number_project &lt;= 5: 0 (931/36)
+##     :   :           number_project &gt; 5:
+##     :   :           :...number_project &lt;= 6: 0 (241/21)
+##     :   :               number_project &gt; 6: 1 (13)
+##     :   number_project &lt;= 2:
+##     :   :...last_evaluation &gt; 0.57: 0 (100/4)
+##     :       last_evaluation &lt;= 0.57:
+##     :       :...last_evaluation &lt;= 0.44: 0 (34)
+##     :           last_evaluation &gt; 0.44:
+##     :           :...average_montly_hours &lt;= 160:
+##     :               :...average_montly_hours &gt; 127: 1 (1158/10)
+##     :               :   average_montly_hours &lt;= 127:
+##     :               :   :...average_montly_hours &lt;= 125: 0 (10)
+##     :               :       average_montly_hours &gt; 125: 1 (54)
+##     :               average_montly_hours &gt; 160:
+##     :               :...average_montly_hours &lt;= 162: 1 (9)
+##     :                   average_montly_hours &gt; 162:
+##     :                   :...satisfaction_level &lt;= 0.28: 1 (5/1)
+##     :                       satisfaction_level &gt; 0.28: 0 (14)
+##     satisfaction_level &gt; 0.46:
+##     :...time_spend_company &lt;= 4: 0 (7085/101)
+##         time_spend_company &gt; 4:
+##         :...last_evaluation &lt;= 0.8: 0 (620/23)
+##             last_evaluation &gt; 0.8:
+##             :...time_spend_company &gt; 6: 0 (138)
+##                 time_spend_company &lt;= 6:
+##                 :...average_montly_hours &lt;= 214:
+##                     :...number_project &gt; 3: 0 (60/1)
+##                     :   number_project &lt;= 3:
+##                     :   :...time_spend_company &gt; 5: 0 (14)
+##                     :       time_spend_company &lt;= 5:
+##                     :       :...average_montly_hours &lt;= 139: 0 (6)
+##                     :           average_montly_hours &gt; 139: 1 (18/5)
+##                     average_montly_hours &gt; 214:
+##                     :...number_project &lt;= 3:
+##                         :...salary.low = 0: 0 (23)
+##                         :   salary.low = 1:
+##                         :   :...satisfaction_level &lt;= 0.67: 1 (6)
+##                         :       satisfaction_level &gt; 0.67: 0 (6)
 ##                         number_project &gt; 3:
-##                         :...Work_accident = 1: 0 (6)
-##                             Work_accident = 0:
-##                             :...sales.technical = 1: 1 (9/2)
-##                                 sales.technical = 0:
-##                                 :...salary.medium = 1: 0 (10)
-##                                     salary.medium = 0:
-##                                     :...sales.support = 0: 0 (22/8)
-##                                         sales.support = 1: 1 (5)
+##                         :...satisfaction_level &gt; 0.72: 1 (660/20)
+##                             satisfaction_level &lt;= 0.72:
+##                             :...satisfaction_level &lt;= 0.71: 0 (23/3)
+##                                 satisfaction_level &gt; 0.71: 1 (19)
 ## 
 ## 
 ## Evaluation on training data (12000 cases):
@@ -631,31 +623,31 @@ summary(ClTree1)</code></pre>
 ##    ----------------  
 ##    Size      Errors  
 ## 
-##      38  215( 1.8%)   &lt;&lt;
+##      28  231( 1.9%)   &lt;&lt;
 ## 
 ## 
 ##     (a)   (b)    &lt;-classified as
 ##    ----  ----
-##    9116    27    (a): class 0
-##     188  2669    (b): class 1
+##    9130    39    (a): class 0
+##     192  2639    (b): class 1
 ## 
 ## 
 ##  Attribute usage:
 ## 
 ##  100.00% average_montly_hours
-##   97.77% satisfaction_level
-##   72.09% time_spend_company
-##   33.18% last_evaluation
+##   97.84% satisfaction_level
+##   72.32% time_spend_company
+##   34.92% last_evaluation
 ##   32.48% number_project
-##    0.43% Work_accident
-##    0.38% sales.technical
-##    0.31% salary.medium
-##    0.27% salary.low
-##    0.22% sales.support
+##    0.29% salary.low
 ## 
 ## 
-## Time: 0.2 secs</code></pre>
-<p>Shorter version</p>
+## Time: 0.1 secs</code></pre>
+</div>
+<div id="simplification-of-the-model" class="section level2">
+<h2>Simplification of the model</h2>
+<p>As we see from results of the first iteration, only five variables are mainly used by the model for making sufficiently precise prediction: average_montly_hours; satisfaction_level; time_spend_company; last_evaluation; number_project.</p>
+<p>We will build a model only with these variables and will later evaluate performance of this simplified model on test dataset.</p>
 <pre class="r"><code>ClTree2 &lt;- C5.0(TrainDS[c(4, 1, 5, 2, 3)],TrainDS$left)
 summary(ClTree2)</code></pre>
 <pre><code>## 
@@ -663,7 +655,7 @@ summary(ClTree2)</code></pre>
 ## C5.0.default(x = TrainDS[c(4, 1, 5, 2, 3)], y = TrainDS$left)
 ## 
 ## 
-## C5.0 [Release 2.07 GPL Edition]      Wed Jan 18 13:17:56 2017
+## C5.0 [Release 2.07 GPL Edition]      Wed Jan 18 23:22:59 2017
 ## -------------------------------
 ## 
 ## Class specified by attribute `outcome'
@@ -672,86 +664,95 @@ summary(ClTree2)</code></pre>
 ## 
 ## Decision tree:
 ## 
-## average_montly_hours &gt; 287: 1 (268)
+## average_montly_hours &gt; 287: 1 (259)
 ## average_montly_hours &lt;= 287:
-## :...satisfaction_level &lt;= 0.46:
+## :...satisfaction_level &gt; 0.46:
+##     :...time_spend_company &lt;= 4: 0 (7085/101)
+##     :   time_spend_company &gt; 4:
+##     :   :...last_evaluation &lt;= 0.8: 0 (620/23)
+##     :       last_evaluation &gt; 0.8:
+##     :       :...time_spend_company &gt; 6: 0 (138)
+##     :           time_spend_company &lt;= 6:
+##     :           :...average_montly_hours &lt;= 214:
+##     :               :...number_project &gt; 3: 0 (60/1)
+##     :               :   number_project &lt;= 3:
+##     :               :   :...time_spend_company &gt; 5: 0 (14)
+##     :               :       time_spend_company &lt;= 5:
+##     :               :       :...average_montly_hours &lt;= 139: 0 (6)
+##     :               :           average_montly_hours &gt; 139:
+##     :               :           :...average_montly_hours &lt;= 185: 1 (16/3)
+##     :               :               average_montly_hours &gt; 185: 0 (2)
+##     :               average_montly_hours &gt; 214:
+##     :               :...number_project &lt;= 3:
+##     :                   :...average_montly_hours &lt;= 221: 1 (3)
+##     :                   :   average_montly_hours &gt; 221: 0 (32/3)
+##     :                   number_project &gt; 3:
+##     :                   :...satisfaction_level &gt; 0.72:
+##     :                       :...satisfaction_level &lt;= 0.91: 1 (641/15)
+##     :                       :   satisfaction_level &gt; 0.91:
+##     :                       :   :...satisfaction_level &lt;= 0.92: 1 (15/1)
+##     :                       :       satisfaction_level &gt; 0.92: 0 (4)
+##     :                       satisfaction_level &lt;= 0.72:
+##     :                       :...satisfaction_level &gt; 0.71: 1 (19)
+##     :                           satisfaction_level &lt;= 0.71:
+##     :                           :...satisfaction_level &lt;= 0.65: 0 (15)
+##     :                               satisfaction_level &gt; 0.65:
+##     :                               :...satisfaction_level &lt;= 0.67: 1 (3)
+##     :                                   satisfaction_level &gt; 0.67: 0 (5)
+##     satisfaction_level &lt;= 0.46:
 ##     :...number_project &lt;= 2:
-##     :   :...last_evaluation &gt; 0.57: 0 (98/4)
-##     :   :   last_evaluation &lt;= 0.57:
-##     :   :   :...last_evaluation &lt;= 0.44: 0 (33)
-##     :   :       last_evaluation &gt; 0.44:
-##     :   :       :...satisfaction_level &lt;= 0.35:
-##     :   :           :...satisfaction_level &lt;= 0.15: 1 (4)
-##     :   :           :   satisfaction_level &gt; 0.15: 0 (21/5)
-##     :   :           satisfaction_level &gt; 0.35:
-##     :   :           :...average_montly_hours &gt; 159:
-##     :   :               :...average_montly_hours &lt;= 165: 1 (46)
-##     :   :               :   average_montly_hours &gt; 165: 0 (13/1)
-##     :   :               average_montly_hours &lt;= 159:
-##     :   :               :...average_montly_hours &gt; 127: 1 (1116/3)
-##     :   :                   average_montly_hours &lt;= 127:
-##     :   :                   :...average_montly_hours &lt;= 125: 0 (11)
-##     :   :                       average_montly_hours &gt; 125: 1 (56)
-##     :   number_project &gt; 2:
-##     :   :...satisfaction_level &lt;= 0.11: 1 (464)
-##     :       satisfaction_level &gt; 0.11:
-##     :       :...average_montly_hours &lt;= 131: 0 (154)
-##     :           average_montly_hours &gt; 131:
-##     :           :...average_montly_hours &lt;= 141:
-##     :               :...number_project &lt;= 3: 0 (20)
-##     :               :   number_project &gt; 3:
-##     :               :   :...satisfaction_level &lt;= 0.3: 0 (26/4)
-##     :               :       satisfaction_level &gt; 0.3:
-##     :               :       :...satisfaction_level &lt;= 0.4: 1 (20/4)
-##     :               :           satisfaction_level &gt; 0.4: 0 (6)
-##     :               average_montly_hours &gt; 141:
-##     :               :...last_evaluation &lt;= 0.98:
-##     :                   :...number_project &lt;= 5: 0 (747/34)
-##     :                   :   number_project &gt; 5:
-##     :                   :   :...number_project &lt;= 6: 0 (225/13)
-##     :                   :       number_project &gt; 6: 1 (10)
-##     :                   last_evaluation &gt; 0.98:
-##     :                   :...number_project &gt; 4: 0 (11)
-##     :                       number_project &lt;= 4:
-##     :                       :...time_spend_company &lt;= 4: 1 (10/2)
-##     :                           time_spend_company &gt; 4: 0 (4)
-##     satisfaction_level &gt; 0.46:
-##     :...time_spend_company &lt;= 4: 0 (7060/96)
-##         time_spend_company &gt; 4:
-##         :...last_evaluation &lt;= 0.8:
-##             :...average_montly_hours &lt;= 272: 0 (560/15)
-##             :   average_montly_hours &gt; 272:
-##             :   :...satisfaction_level &gt; 0.57: 0 (16)
-##             :       satisfaction_level &lt;= 0.57:
-##             :       :...satisfaction_level &lt;= 0.51: 0 (7)
-##             :           satisfaction_level &gt; 0.51:
-##             :           :...number_project &lt;= 4: 1 (8)
-##             :               number_project &gt; 4: 0 (2)
-##             last_evaluation &gt; 0.8:
-##             :...time_spend_company &gt; 6: 0 (144)
-##                 time_spend_company &lt;= 6:
-##                 :...average_montly_hours &lt;= 215:
-##                     :...time_spend_company &gt; 5: 0 (37)
-##                     :   time_spend_company &lt;= 5:
-##                     :   :...number_project &gt; 3: 0 (32/1)
-##                     :       number_project &lt;= 3:
-##                     :       :...average_montly_hours &lt;= 146: 0 (9)
-##                     :           average_montly_hours &gt; 146:
-##                     :           :...average_montly_hours &lt;= 185: 1 (12/1)
-##                     :               average_montly_hours &gt; 185: 0 (3)
-##                     average_montly_hours &gt; 215:
-##                     :...number_project &lt;= 3:
-##                         :...average_montly_hours &lt;= 221: 1 (2)
-##                         :   average_montly_hours &gt; 221: 0 (30/2)
-##                         number_project &gt; 3:
-##                         :...satisfaction_level &lt;= 0.72:
-##                             :...satisfaction_level &lt;= 0.71: 0 (23/3)
-##                             :   satisfaction_level &gt; 0.71: 1 (21)
-##                             satisfaction_level &gt; 0.72:
-##                             :...satisfaction_level &lt;= 0.91: 1 (652/14)
-##                                 satisfaction_level &gt; 0.91:
-##                                 :...satisfaction_level &lt;= 0.92: 1 (15/1)
-##                                     satisfaction_level &gt; 0.92: 0 (4)
+##         :...last_evaluation &gt; 0.57: 0 (100/4)
+##         :   last_evaluation &lt;= 0.57:
+##         :   :...last_evaluation &lt;= 0.44: 0 (34)
+##         :       last_evaluation &gt; 0.44:
+##         :       :...average_montly_hours &gt; 160:
+##         :           :...average_montly_hours &lt;= 162: 1 (9)
+##         :           :   average_montly_hours &gt; 162:
+##         :           :   :...satisfaction_level &lt;= 0.28: 1 (5/1)
+##         :           :       satisfaction_level &gt; 0.28: 0 (14)
+##         :           average_montly_hours &lt;= 160:
+##         :           :...average_montly_hours &lt;= 127:
+##         :               :...average_montly_hours &lt;= 125: 0 (10)
+##         :               :   average_montly_hours &gt; 125: 1 (54)
+##         :               average_montly_hours &gt; 127:
+##         :               :...satisfaction_level &gt; 0.36: 1 (1076/3)
+##         :                   satisfaction_level &lt;= 0.36:
+##         :                   :...satisfaction_level &gt; 0.34: 1 (71)
+##         :                       satisfaction_level &lt;= 0.34:
+##         :                       :...average_montly_hours &lt;= 140: 1 (4)
+##         :                           average_montly_hours &gt; 140: 0 (7)
+##         number_project &gt; 2:
+##         :...satisfaction_level &lt;= 0.11: 1 (466)
+##             satisfaction_level &gt; 0.11:
+##             :...last_evaluation &gt; 0.98:
+##                 :...last_evaluation &lt;= 0.99: 0 (17/3)
+##                 :   last_evaluation &gt; 0.99:
+##                 :   :...time_spend_company &lt;= 4: 1 (9/1)
+##                 :       time_spend_company &gt; 4: 0 (2)
+##                 last_evaluation &lt;= 0.98:
+##                 :...number_project &lt;= 5: 0 (931/36)
+##                     number_project &gt; 5:
+##                     :...number_project &gt; 6: 1 (13)
+##                         number_project &lt;= 6:
+##                         :...satisfaction_level &lt;= 0.27: 0 (158/6)
+##                             satisfaction_level &gt; 0.27:
+##                             :...time_spend_company &lt;= 3: 0 (33/2)
+##                                 time_spend_company &gt; 3:
+##                                 :...satisfaction_level &gt; 0.38: 0 (21/1)
+##                                     satisfaction_level &lt;= 0.38:
+##                                     :...time_spend_company &gt; 8: 0 (3)
+##                                         time_spend_company &lt;= 8:
+##                                         :...average_montly_hours &lt;= 123: 0 (5)
+##                                             average_montly_hours &gt; 123: [S1]
+## 
+## SubTree [S1]
+## 
+## average_montly_hours &lt;= 140: 1 (6)
+## average_montly_hours &gt; 140:
+## :...satisfaction_level &lt;= 0.29: 1 (3)
+##     satisfaction_level &gt; 0.29:
+##     :...last_evaluation &lt;= 0.87: 0 (9)
+##         last_evaluation &gt; 0.87: 1 (3)
 ## 
 ## 
 ## Evaluation on training data (12000 cases):
@@ -760,32 +761,36 @@ summary(ClTree2)</code></pre>
 ##    ----------------  
 ##    Size      Errors  
 ## 
-##      41  203( 1.7%)   &lt;&lt;
+##      44  204( 1.7%)   &lt;&lt;
 ## 
 ## 
 ##     (a)   (b)    &lt;-classified as
 ##    ----  ----
-##    9118    25    (a): class 0
-##     178  2679    (b): class 1
+##    9145    24    (a): class 0
+##     180  2651    (b): class 1
 ## 
 ## 
 ##  Attribute usage:
 ## 
 ##  100.00% average_montly_hours
-##   97.77% satisfaction_level
-##   72.09% time_spend_company
-##   33.18% last_evaluation
-##   32.57% number_project
+##   97.84% satisfaction_level
+##   73.10% time_spend_company
+##   34.92% last_evaluation
+##   32.48% number_project
 ## 
 ## 
-## Time: 0.2 secs</code></pre>
-<pre class="r"><code>C5.0.graphviz(ClTree2, './/Tree2.txt')</code></pre>
+## Time: 0.1 secs</code></pre>
+<pre class="r"><code># save results of modeling to .txt file
+# data saved in file enables visualization of tree using free GraphViz software
+# GraphViz can be installed from http://www.graphviz.org/
+C5.0.graphviz(ClTree2, './/Tree2.txt')</code></pre>
+</div>
 </div>
 <div id="evaluation" class="section level1">
 <h1>Evaluation</h1>
-<p>!!DRAFT!! VERSION</p>
+<p>To evaluate the model we apply it to test dataset and build the confusion matrix of results. It shows how many mistakes of different type the model does and how many observations are classified correctly.</p>
 <pre class="r"><code>PredictionTree &lt;- predict(ClTree2, TestDS)
-CrossTable(TestDS$left, PredictionTree, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual leave', 'predicted leave'))</code></pre>
+CT.Tree &lt;- CrossTable(TestDS$left, PredictionTree, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual leave', 'predicted leave'))</code></pre>
 <pre><code>## 
 ##  
 ##    Cell Contents
@@ -801,20 +806,32 @@ CrossTable(TestDS$left, PredictionTree, prop.chisq = FALSE, prop.c = FALSE, prop
 ##              | predicted leave 
 ## actual leave |         0 |         1 | Row Total | 
 ## -------------|-----------|-----------|-----------|
-##            0 |      2272 |        13 |      2285 | 
-##              |     0.758 |     0.004 |           | 
+##            0 |      2246 |        13 |      2259 | 
+##              |     0.749 |     0.004 |           | 
 ## -------------|-----------|-----------|-----------|
-##            1 |        51 |       663 |       714 | 
-##              |     0.017 |     0.221 |           | 
+##            1 |        51 |       689 |       740 | 
+##              |     0.017 |     0.230 |           | 
 ## -------------|-----------|-----------|-----------|
-## Column Total |      2323 |       676 |      2999 | 
+## Column Total |      2297 |       702 |      2999 | 
 ## -------------|-----------|-----------|-----------|
 ## 
 ## </code></pre>
+<pre class="r"><code>CT.Tree.DF &lt;- as.data.frame(CT.Tree)</code></pre>
+<p>As we can see from the table, in 2935 observations out of 2999 observations in test dataset model correctly predicted if employee will leave. This includes 2246 observations where model correctly predicted that employee will not leave and 689 observation where model correctly predicted leave. Thus 97.9% observations from test dataset were classified correctly.</p>
+<p>Dataset was initially imbalanced (24% of all employees in dataset did not leave). Even that we already see significant information gain vs random gassing from conclusion above, let’s check how successfully model identifies observations of both positive and negative target variable.</p>
+<p>Model correctly identified 93.1% of positive observations (the ones where employee left). Only 51 of employees who in fact left were not identified by the model.</p>
+<p>Model also correctly identified 99.4% of negative observations. Only for 13 of employees model generated false positive prediction.</p>
 </div>
 <div id="deployment" class="section level1">
 <h1>Deployment</h1>
-<p>Work in progress</p>
+<p>As a result of the project, we built a model that can proved to be a successful predictor of possible leave of employees. It turned out, that most powerful predictors of leave are working hours, satisfaction level, time spent at company, last evaluation, and number of projects. But this data should be used in a systematic logical way, described by decision tree we built - none of variables along can not predict a leave (this we saw from correlation analysis at the beginning).</p>
+<p>Should this model be deployed in a real business environment, it can be integrated into HR IT system - letting know HR and line managers about risk of each of employees’ leave. It can also generate a report, which signs were used by the algorithm to predict the leave (is it because employee work critically long hours or because of combination of big number of projects and low satisfaction?).</p>
+<p>Potential ways to improve this project include the following.</p>
+<ul>
+<li>It’s possible to build predictive models using other methodologies and tools, in order to find ways to improve predictive power even further.</li>
+<li>It makes sense to integrate estimation of employee’s value for the company in the model - so that company will try to stop from leaving only employees who generate enough positive results.</li>
+<li>Tool can be further improved to advice HR manager what parameters of employee’s work-life should be changes the first in order to decrease risk of leaving most significantly.</li>
+</ul>
 </div>
 
 

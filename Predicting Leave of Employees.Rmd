@@ -15,21 +15,19 @@ output:
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 # basic preparatory commands
 
-# clearing the working environment
+# clear the working environment
 rm(list = ls())
 
-# loading or installing packages used in the project
-# make sure to list all required packages in ./R/library.R
-# source("./R/library.R")
-
-# loading the dataset for the project
+# load the dataset for the project
 HR <- read.csv("./Data/HR_dataset.csv", sep=",", dec=".")
 
-# loading required libraries
+# load required packages
+# install required packages if loading failed
+# all packages sould be listed inside install_load()
 source("./R/library.R")
 install_load("ggplot2", "corrplot", "caret", "C50", "cwhmisc", "stringr", "gmodels")
 
-#load file with function we'll need to visualize the decision tree
+# load file with function we'll use in work with classification tree
 source("./R/C5.0.graphviz.R")
 ```
 
@@ -61,18 +59,15 @@ Both project work and this report are structured according to following process 
 
 For classification trees methodology, modelling process include following steps.
 
-+ Decision on predictive quality of model to be considered acceptable.
-+ Selection of classification tree algorithm and R package to be used.
-+ Selection of explanatory variables.
-+ Application of algorithm to training dataset and getting the model.
-+ Generation of text and graphical visualizations of decision trees, checking for business sense.
++ Choice of methodology and tool.
++ First application of tool to dataset.
++ Generation of decision tree visualization, decision on simplification possibility.
++ Simplification of the model if possible.
 + Preliminary evaluation of the model using confusion matrix and test dataset. Decision to proceed (if evaluation results are satisfactory) or repeating the modelling process.
 
 **5. Evaluation.** Check of models predictive accuracy on test dataset.
 
 + Generation of confusion matrix using built model and test dataset.
-+ Plotting receiver operating characteristic curve for the model and test dataset.
-+ Comparing evaluation results with target characteristics.
 + Decision on accepting the model or repeating the modelling process.
 
 **6. Deployment.** Conclusion on project results and description of potential deployment of built model in practice. Remarks about potential ways to improve process and model of this project.
@@ -245,7 +240,7 @@ Since we don't have missing values, there is no need to exclude any observations
 
 ## Check for outliers
 
-Graphical analysis of variables' distributions done on Data Understanding step did not show any suspecious outliers.
+Graphical analysis of variables' distributions done on Data Understanding step did not show any suspicious outliers.
 
 ## Creation of dummy variables
 
@@ -280,9 +275,6 @@ str(HR.dm)
 Let's separate dataset into 80% training dataset and 20% test dataset.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
-#let's also format target variable as factor before dataset separation
-HR$left <- as.factor(HR$left)
-
 set.seed(777)
 train.index <- createDataPartition(HR$left, p = .8, list = FALSE, times = 1)
 TrainDS <- HR.dm[ train.index, ]
@@ -300,14 +292,41 @@ round(prop.table(table(TestDS$left)),3)
 
 # Modelling: Decision Tree
 
-!!DRAFT!! VERSION
+## Choice of methodology and tool
+
+Possible methodologies for solving classification problems include logistic regression, support vector machine, decision tree, Naive Bayes classification, k-nearest neighbor. For the purpose of this exercise we will use decision tree methodology. It should provide an output in a form of clear set of rules, that should be easy to communicate to management and easy to implement (for example, in company's HR system).
+
+Our model should predict categorical response variable (if employee leaves) with two possible outcomes: yes (1) or no (0). For that reason, decision tree should be a classification tree. 
+
+There are many packages in R for modeling decision trees: for example, rpart, party, RWeka, ipred, randomForest, gbm, C5.0. C5.0 is one of most up-to-date algorithms with following advantages ([source](http://en.proft.me/2016/11/9/classification-using-decision-trees-r/)):
+
++ An all-purpose classifier that does well on most problems.
++ Highly automatic learning process, which can handle numeric or nominal features, as well as missing data.
++ Less data cleaning required.
++ Excludes unimportant features.
++ Can be used on both small and large datasets.
++ Non parametric method (have no assumptions about the space distribution and the classifier structure).
++ Results in a model that can be interpreted without a mathematical background (for relatively small trees).
++ More efficient than other complex models.
+
+C4.5, which was a C5.0 predecessor, became quite popular after ranking #1 in the Top 10 Algorithms in Data Mining pre-eminent paper published by Springer LNCS in 2008 ([source](https://en.wikipedia.org/wiki/C4.5_algorithm)). Taking all advantages into account, we are using C5.0 algorithm for the modelling.
+
+C5.0 builds decision trees from a set of training data using the concept of information entropy. At each node of the tree, C5.0 chooses the attribute of the data that most effectively splits its set of samples into subsets enriched in one class or the other. The splitting criterion is the normalized information gain (difference in entropy). The attribute with the highest normalized information gain is chosen to make the decision. The C5.0 algorithm then recurs on the smaller sublists.
+
+## First application of tool to dataset
+
+For a first iteration, we apply C5.0 algorithm to the whole training dataset. Variable "Leave" serves as target variables and all other variables - as predictors. After the initial modelling we'll see which predicting variables are less helpful in predicting leave of employees and can be removed from modelling process.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ClTree1 <- C5.0(TrainDS[-7],TrainDS$left)
 summary(ClTree1)
 ```
 
-Shorter version
+## Simplification of the model
+
+As we see from results of the first iteration, only five variables are mainly used by the model for making sufficiently precise prediction: average_montly_hours; satisfaction_level;	time_spend_company;	last_evaluation; number_project.
+
+We will build a model only with these variables and will later evaluate performance of this simplified model on test dataset.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ClTree2 <- C5.0(TrainDS[c(4, 1, 5, 2, 3)],TrainDS$left)
@@ -315,21 +334,39 @@ summary(ClTree2)
 ```
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
+# save results of modeling to .txt file
+# data saved in file enables visualization of tree using free GraphViz software
+# GraphViz can be installed from http://www.graphviz.org/
 C5.0.graphviz(ClTree2, './/Tree2.txt')
 ```
 
-
 # Evaluation
 
-!!DRAFT!! VERSION
+To evaluate the model we apply it to test dataset and build the confusion matrix of results. It shows how many mistakes of different type the model does and how many observations are classified correctly.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 PredictionTree <- predict(ClTree2, TestDS)
-CrossTable(TestDS$left, PredictionTree, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual leave', 'predicted leave'))
+CT.Tree <- CrossTable(TestDS$left, PredictionTree, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual leave', 'predicted leave'))
+CT.Tree.DF <- as.data.frame(CT.Tree)
 ```
 
+As we can see from the table, for `r CT.Tree.DF[4,3]+CT.Tree.DF[1,3]` out of `r nrow(TestDS)` observations in test dataset model correctly predicted if employee will leave. This includes `r CT.Tree.DF[1,3]` observations where model correctly predicted that employee will not leave and `r CT.Tree.DF[4,3]` observation where model correctly predicted leave. Thus `r round(CT.Tree.DF[4,12]+CT.Tree.DF[1,12],3)*100`% observations from test dataset were classified correctly.
+
+Dataset was initially imbalanced (`r round(sum(HR$left==1)/nrow(HR),2)*100`% of all employees in dataset did not leave). Even that we already see significant information gain vs random gassing from conclusion above, let's check how successfully model identifies observations of both positive and negative target variable.
+
+Model correctly identified `r round(CT.Tree.DF[4,3]/(CT.Tree.DF[4,3]+CT.Tree.DF[2,3]),3)*100`% of positive observations (the ones where employee left). Only `r CT.Tree.DF[2,3]` of employees who in fact left were not identified by the model.
+
+Model also correctly identified `r round(CT.Tree.DF[1,3]/(CT.Tree.DF[1,3]+CT.Tree.DF[3,3]),3)*100`% of negative observations. Only for `r CT.Tree.DF[3,3]` of employees model generated false positive prediction.
 
 
 # Deployment
 
-Work in progress
+As a result of the project, we built a model that proved to be a successful predictor of possible leave of employees. It turned out, that most powerful predictors of leave are working hours, satisfaction level, time spent at company, last evaluation, and number of projects. But this data should be used in a systematic logical way, described by decision tree we built - none of variables along can not predict a leave (this we saw from correlation analysis at the beginning).
+
+Should this model be deployed in a real business environment, it can be integrated into HR IT system - letting know HR and line managers about risk of each of employees' leave. Being implemented in HR system, it can also generate a report, which signs were used by the algorithm to predict the leave (is it because employee work critically long hours or because of combination of big number of projects and low satisfaction?).
+
+Potential ways to improve this project include the following.
+
++ It's possible to build predictive models using other methodologies and tools, in order to find ways to improve predictive power even further.
++ It makes sense to integrate estimation of employee's value for the company in the model - so that company will try to stop from leaving only employees who generate enough positive results.
++ Tool can be further improved to advice HR manager what parameters of employee's work-life should be changes the first in order to decrease risk of leaving most significantly.
