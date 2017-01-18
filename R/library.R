@@ -1,17 +1,17 @@
-# Loading all required packages
-# If loading failes - installing these packages
-
-foo <- function(x){
-  for( i in x ){
-    #  require returns TRUE invisibly if it was able to load package
-    if( ! require( i , character.only = TRUE ) ){
-      #  If package was not able to be loaded then re-install
-      install.packages( i , dependencies = TRUE )
-      #  Load package after installing
-      require( i , character.only = TRUE )
+install_load <- function (package1, ...) {
+  # convert arguments to vector
+  packages <- c(package1, ...)
+  # start loop to determine if each package is installed
+  for (package in packages) {
+    # if package is installed locally, load
+    if (package %in% rownames(installed.packages()))
+      do.call(library, list(package))
+    # if package is not installed locally, download and then load
+    else {
+      install.packages(package, repos =
+                         c("https://cloud.r-project.org", "http://owi.usgs.gov/R/"),
+                       dependencies = NA, type = getOption("pkgType"))
+      do.call(library, list(package))
     }
   }
 }
-
-#  Then try/install packages...
-foo( c("googleVis" , "ggplot2", "corrplot", "shiny") )
