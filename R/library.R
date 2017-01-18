@@ -1,22 +1,17 @@
-# installs all necessary libraries from CRAN or Github
-get_libraries <- function(filenames_list) suppressPackageStartupMessages({ 
-  lapply(filenames_list, function(thelibrary){    
-    thelibrary.split <- strsplit(thelibrary, "/")[[1]]
-    if (length(thelibrary.split) > 1) {
-      # install from Github
-      if (!suppressWarnings(require(thelibrary.split[2], character.only=TRUE))) {
-        devtools::install_github(thelibrary, quiet=TRUE)
-        library(thelibrary.split[2], character.only=TRUE)
-      }
-    } else {
-      # install from CRAN
-      if (!suppressWarnings(require(thelibrary, character.only=TRUE))) {
-        install.packages(thelibrary, repos="http://cran.r-project.org/", quiet=TRUE)
-        library(thelibrary, character.only=TRUE)
-      }
+install_load <- function (package1, ...) {
+  # convert arguments to vector
+  packages <- c(package1, ...)
+  # start loop to determine if each package is installed
+  for (package in packages) {
+    # if package is installed locally, load
+    if (package %in% rownames(installed.packages()))
+      do.call(library, list(package))
+    # if package is not installed locally, download and then load
+    else {
+      install.packages(package, repos =
+                         c("https://cloud.r-project.org", "http://owi.usgs.gov/R/"),
+                       dependencies = NA, type = getOption("pkgType"))
+      do.call(library, list(package))
     }
-  })
-})
-
-libraries_used=c("ggplot2", "corrplot", "caret", "C50")
-get_libraries(libraries_used)
+  }
+}
