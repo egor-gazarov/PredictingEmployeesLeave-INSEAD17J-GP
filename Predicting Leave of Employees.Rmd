@@ -319,10 +319,10 @@ For a first iteration, we apply C5.0 algorithm to the whole training dataset. Va
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ClTree1 <- C5.0(TrainDS[-7],TrainDS$left)
-summary(ClTree1)
-plot(ClTree1)
+#summary(ClTree1)
+#plot(ClTree1)
 
-fit <- rpart(left ~ satisfaction_level + last_evaluation + number_project + average_montly_hours + time_spend_company + Work_accident + promotion_last_5years, method="class", data=TrainDS)
+fit <- rpart(left ~ satisfaction_level + last_evaluation + number_project + average_montly_hours + time_spend_company + Work_accident + promotion_last_5years + Division.hr + Division.IT + Division.management + Division.marketing + Division.product_mng + Division.RandD + Division.sales + Division.support + Division.technical + salary.low + salary.medium, method="class", data=TrainDS)
 prp(fit, uniform=TRUE, 
   	main="Classification Tree for Employee")
 ```
