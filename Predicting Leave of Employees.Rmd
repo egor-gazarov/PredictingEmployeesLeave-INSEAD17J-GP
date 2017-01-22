@@ -25,7 +25,7 @@ HR <- read.csv("./Data/HR_dataset.csv", sep=",", dec=".")
 # install required packages if loading failed
 # all packages sould be listed inside install_load()
 source("./R/library.R")
-install_load("ggplot2", "corrplot", "caret", "C50", "cwhmisc", "stringr", "gmodels")
+install_load("ggplot2", "corrplot", "caret", "C50", "cwhmisc", "stringr", "gmodels", "rpart", "rattle", "rpart.plot", "RColorBrewer", "party", "partykit", "caret")
 
 # load file with function we'll use in work with classification tree
 source("./R/C5.0.graphviz.R")
@@ -320,6 +320,11 @@ For a first iteration, we apply C5.0 algorithm to the whole training dataset. Va
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ClTree1 <- C5.0(TrainDS[-7],TrainDS$left)
 summary(ClTree1)
+plot(ClTree1)
+
+fit <- rpart(left ~ satisfaction_level + last_evaluation + number_project + average_montly_hours + time_spend_company + Work_accident + promotion_last_5years, method="class", data=TrainDS)
+prp(fit, uniform=TRUE, 
+  	main="Classification Tree for Employee")
 ```
 
 ## Simplification of the model
