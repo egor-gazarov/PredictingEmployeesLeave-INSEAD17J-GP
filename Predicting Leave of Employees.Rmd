@@ -202,11 +202,11 @@ ggplot(HR.stayed, aes(HR.stayed$promotion_last_5years)) + geom_histogram(fill = 
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 Departments <- c("sales", "technical", "support", "IT", "product_mng", "marketing", "RandD", "accounting", "hr","management")
-ggplot(HR.left, aes(HR.left$sales)) + geom_bar(stat = "count", fill = '#B8274C') + labs(x = "Department of employees who left") + scale_x_discrete(limits = Departments)
+ggplot(HR.left, aes(HR.left$Division)) + geom_bar(stat = "count", fill = '#B8274C') + labs(x = "Department of employees who left") + scale_x_discrete(limits = Departments)
 ```
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
-ggplot(HR.stayed, aes(HR.stayed$sales)) + geom_bar(stat = "count", fill = '#006E51') + labs(x = "Department of employees who stayed") + scale_x_discrete(limits = Departments)
+ggplot(HR.stayed, aes(HR.stayed$Division)) + geom_bar(stat = "count", fill = '#006E51') + labs(x = "Department of employees who stayed") + scale_x_discrete(limits = Departments)
 ```
 
 ### Salary
