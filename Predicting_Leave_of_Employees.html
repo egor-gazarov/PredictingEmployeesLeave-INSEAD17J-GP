@@ -552,7 +552,7 @@ summary(ClTree1)</code></pre>
 ## C5.0.default(x = TrainDS[-7], y = TrainDS$left)
 ## 
 ## 
-## C5.0 [Release 2.07 GPL Edition]      Wed Jan 25 17:43:03 2017
+## C5.0 [Release 2.07 GPL Edition]      Wed Jan 25 19:23:29 2017
 ## -------------------------------
 ## 
 ## Class specified by attribute `outcome'
@@ -657,7 +657,7 @@ summary(ClTree2)</code></pre>
 ## C5.0.default(x = TrainDS[c(4, 1, 5, 2, 3)], y = TrainDS$left)
 ## 
 ## 
-## C5.0 [Release 2.07 GPL Edition]      Wed Jan 25 17:43:05 2017
+## C5.0 [Release 2.07 GPL Edition]      Wed Jan 25 19:23:32 2017
 ## -------------------------------
 ## 
 ## Class specified by attribute `outcome'
@@ -826,8 +826,72 @@ CT.Tree &lt;- CrossTable(TestDS$left, PredictionTree, prop.chisq = FALSE, prop.c
 </div>
 <div id="deployment" class="section level1">
 <h1>Deployment</h1>
-<p>As a result of the project, we built a model that proved to be a successful predictor of possible leave of employees. It turned out, that most powerful predictors of leave are working hours, satisfaction level, time spent at company, last evaluation, and number of projects. But this data should be used in a systematic logical way, described by decision tree we built - none of variables along can not predict a leave (this we saw from correlation analysis at the beginning).</p>
-<p>Should this model be deployed in a real business environment, it can be integrated into HR IT system - letting know HR and line managers about risk of each of employees’ leave. Being implemented in HR system, it can also generate a report, which signs were used by the algorithm to predict the leave (is it because employee work critically long hours or because of combination of big number of projects and low satisfaction?).</p>
+<p>As a result of the project, we built a model that proved to be a successful predictor of possible leave of employees. It turned out, that most powerful predictors of leave are working hours, satisfaction level, time spent at company, last evaluation, and number of projects. But this data should be used in a systematic logical way, described by decision tree we built - none of variables alone can predict a leave (this we saw from correlation analysis at the beginning). Furthermore, while the model was built with backward looking data, the prediction tool uses data on employees that are still working at the company during data collection. Prediction result must be interpreted carefully, as we will present below.</p>
+<div id="deployment-example-1-early-indicator-of-employee-leaving" class="section level2">
+<h2>Deployment Example 1: Early Indicator of Employee Leaving</h2>
+<p>Let’s say we collected data on three current employees in a company:</p>
+<pre class="r"><code>data.deploy1 &lt;- read.csv(&quot;./Data/Deploy_Data1.csv&quot;, sep=&quot;,&quot;, dec=&quot;.&quot;)
+data.deploy1</code></pre>
+<pre><code>##       name satisfaction_level last_evaluation number_project
+## 1   Jackie               0.60            0.40              2
+## 2 Shahrukh               0.38            0.78              4
+## 3     Brad               0.80            0.89              2
+##   average_montly_hours time_spend_company
+## 1                  290                  3
+## 2                  232                  4
+## 3                  187                  2</code></pre>
+<p>We will apply the model we have built to Jackie’s, Shahrukh’s and Brad’s data as below:</p>
+<pre class="r"><code>predict.deploy &lt;- predict(ClTree2,data.deploy1)
+table(data.deploy1$name,predict.deploy, dnn = c(&quot;name&quot;,&quot;prediction&quot;))</code></pre>
+<pre><code>##           prediction
+## name       0 1
+##   Brad     1 0
+##   Jackie   0 1
+##   Shahrukh 1 0</code></pre>
+<p>The model gave a ‘leave’ prediction to Jackie, and a ‘stay’ prediction to Brad and Shahrukh. HR should interpret this data the following way:</p>
+<ul>
+<li>There is a high probability that Jackie will leave the company in the near future. HR can then decide whether they should take pre-emptive measures to prevent Jackie from leaving</li>
+<li>There is a high probability that Brad and Shahrukh will stay in the company in the near future. HR does not need to take immediate action. However, their data must be reevaluated routinely as the data will change (for example, time spend in the company will continue to increase or employees get new projects)</li>
+</ul>
+</div>
+<div id="deployment-example-2-hr-forecasting" class="section level2">
+<h2>Deployment Example 2: HR Forecasting</h2>
+<p>In most cases, employee satisfaction surveys are confidential and HR does not have visibility to specific employee’s data. For example, we have a data of a company with 10 employees:</p>
+<pre class="r"><code>data.deploy2 &lt;- read.csv(&quot;./Data/Deploy_Data2.csv&quot;, sep=&quot;,&quot;, dec=&quot;.&quot;)
+data.deploy2</code></pre>
+<pre><code>##    satisfaction_level last_evaluation number_project average_montly_hours
+## 1                0.58            0.95              6                  266
+## 2                0.74            0.07              5                  238
+## 3                0.33            0.81              5                  263
+## 4                0.53            0.29              1                  175
+## 5                0.33            0.91              5                  296
+## 6                0.14            0.76              5                  220
+## 7                0.14            0.60              6                  209
+## 8                0.20            0.84              5                  263
+## 9                0.43            0.74              3                  197
+## 10               0.12            0.48              5                  270
+##    time_spend_company
+## 1                   4
+## 2                   9
+## 3                  10
+## 4                   4
+## 5                  10
+## 6                   2
+## 7                   2
+## 8                   3
+## 9                  10
+## 10                  4</code></pre>
+<p>We can then generate a report of a percentage of employees that has a high probability in leaving.</p>
+<pre class="r"><code>predict.deploy2 &lt;- predict(ClTree2,data.deploy2)
+table(predict.deploy2)</code></pre>
+<pre><code>## predict.deploy2
+## 0 1 
+## 9 1</code></pre>
+<p>In this case, we see that 1 in 10 employees (or 10% of employees) have a high probability of leaving the company in the near future. Using this data, HR can set aside enough budget to plan for backfilling these employees.</p>
+</div>
+</div>
+<div id="further-improvements" class="section level1">
+<h1>Further Improvements</h1>
 <p>Potential ways to improve this project include the following.</p>
 <ul>
 <li>It’s possible to build predictive models using other methodologies and tools, in order to find ways to improve predictive power even further.</li>
