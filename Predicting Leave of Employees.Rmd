@@ -25,7 +25,7 @@ HR <- read.csv("./Data/HR_dataset.csv", sep=",", dec=".")
 # install required packages if loading failed
 # all packages sould be listed inside install_load()
 source("./R/library.R")
-install_load("ggplot2", "corrplot", "caret", "C50", "cwhmisc", "stringr", "gmodels", "rpart", "rattle", "rpart.plot", "RColorBrewer", "party", "partykit", "caret")
+install_load("ggplot2", "corrplot", "caret", "C50", "cwhmisc", "stringr", "gmodels")
 
 # load file with function we'll use in work with classification tree
 source("./R/C5.0.graphviz.R")
@@ -318,13 +318,9 @@ C5.0 builds decision trees from a set of training data using the concept of info
 For a first iteration, we apply C5.0 algorithm to the whole training dataset. Variable "Leave" serves as target variables and all other variables - as predictors. After the initial modelling we'll see which predicting variables are less helpful in predicting leave of employees and can be removed from modelling process.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
-#ClTree1 <- C5.0(TrainDS[-7],TrainDS$left)
-#summary(ClTree1)
-#plot(ClTree1)
-
-fit <- rpart(left ~ satisfaction_level + last_evaluation + number_project + average_montly_hours + time_spend_company + Work_accident + promotion_last_5years + Division.hr + Division.IT + Division.management + Division.marketing + Division.product_mng + Division.RandD + Division.sales + Division.support + Division.technical + salary.low + salary.medium, method="class", data=TrainDS)
-prp(fit, uniform=TRUE, 
-  	main="Classification Tree for Employee")
+ClTree1 <- C5.0(TrainDS[-7],TrainDS$left)
+summary(ClTree1)
+plot(ClTree1)
 ```
 
 ## Simplification of the model
@@ -335,11 +331,7 @@ We will build a model only with these variables and will later evaluate performa
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ClTree2 <- C5.0(TrainDS[c(4, 1, 5, 2, 3)],TrainDS$left)
-#summary(ClTree2)
-
-fit2 <- rpart(left ~ satisfaction_level + last_evaluation + number_project + average_montly_hours + time_spend_company, method="class", data=TrainDS)
-prp(fit2, uniform=TRUE, 
-  	main="Classification Tree for Employee")
+summary(ClTree2)
 
 ```
 
@@ -355,11 +347,7 @@ C5.0.graphviz(ClTree2, './/Tree2.txt')
 To evaluate the model we apply it to test dataset and build the confusion matrix of results. It shows how many mistakes of different type the model does and how many observations are classified correctly.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
-#PredictionTree <- predict(ClTree2, TestDS)
-#CT.Tree <- CrossTable(TestDS$left, PredictionTree, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual leave', 'predicted leave'))
-#CT.Tree.DF <- as.data.frame(CT.Tree)
-
-PredictionTree <- predict(fit2, TestDS, type="class")
+PredictionTree <- predict(ClTree2, TestDS)
 CT.Tree <- CrossTable(TestDS$left, PredictionTree, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual leave', 'predicted leave'))
 CT.Tree.DF <- as.data.frame(CT.Tree)
 ```
