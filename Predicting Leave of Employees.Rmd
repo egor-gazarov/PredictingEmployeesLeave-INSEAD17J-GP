@@ -28,7 +28,7 @@ source("./R/library.R")
 install_load("ggplot2", "corrplot", "caret", "C50", "cwhmisc", "stringr", "gmodels")
 
 # load file with function we'll use in work with classification tree
-source("./R/C5.0.graphviz.R")
+#source("./R/C5.0.graphviz.R")
 ```
 
 # Introduction
@@ -252,6 +252,14 @@ HR.dm <- data.frame(predict(dummy, newdata = HR))
 str(HR.dm)
 ```
 
+We then re-checked for cross-correlations with the new dummy variables included. We see that none of the dummy variables are correlated with whether the employee left the firm (i.e all correlation < |0.7|). The only exception was between salary_medium and salary_low, which is expected because salary can only be medium or low. The result of this analysis do not support the necessity of removing variables.
+
+```{r}
+CorTable2 <- cor(HR.dm[,1:19])
+corrplot(CorTable2, method = "color", addCoef.col="grey", type= "upper", number.cex=0.5)
+```
+
+
 ## Range normalization
 
 Classification tree methodology does not require scale normalization of input data, so we do not perform this step.
@@ -335,13 +343,6 @@ summary(ClTree2)
 
 ```
 
-```{r , echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
-# save results of modeling to .txt file
-# data saved in file enables visualization of tree using free GraphViz software
-# GraphViz can be installed from http://www.graphviz.org/
-C5.0.graphviz(ClTree2, './/Tree2.txt')
-```
-
 # Evaluation
 
 To evaluate the model we apply it to test dataset and build the confusion matrix of results. It shows how many mistakes of different type the model does and how many observations are classified correctly.
@@ -378,10 +379,10 @@ We will apply the model we have built to Jackie's, Shahrukh's and Brad's data as
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 predict.deploy <- predict(ClTree2,data.deploy1)
-table(data.deploy1$name,predict.deploy, dnn = c("name","prediction"))
+ftable(data.deploy1$name,predict.deploy, dnn = c("Name","Prediction"))
 ```
 
-The model gave a 'leave' prediction to Jackie, and a 'stay' prediction to Brad and Shahrukh. HR should interpret this data the following way:
+While all three employees were still employed in the company, the model gave a 'leave' prediction to Jackie, and a 'stay' prediction to Brad and Shahrukh. HR should interpret this data the following way:
 
 + There is a high probability that Jackie will leave the company in the near future. HR can then decide whether they should take pre-emptive measures to prevent Jackie from leaving
 + There is a high probability that Brad and Shahrukh will stay in the company in the near future. HR does not need to take immediate action. However, their data must be reevaluated routinely as the data will change (for example, time spend in the company will continue to increase or employees get new projects)
@@ -399,7 +400,7 @@ We can then generate a report of a percentage of employees that has a high proba
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 predict.deploy2 <- predict(ClTree2,data.deploy2)
-table(predict.deploy2)
+ftable(predict.deploy2, dnn = c("Prediction"))
 ```
 In this case, we see that 1 in 10 employees (or 10% of employees) have a high probability of leaving the company in the near future. Using this data, HR can set aside enough budget to plan for backfilling these employees.
 
