@@ -13,7 +13,7 @@ output:
 ---
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
-# basic preparatory commands
+# preparation
 
 # clear the working environment
 rm(list = ls())
@@ -26,9 +26,6 @@ HR <- read.csv("./Data/HR_dataset.csv", sep=",", dec=".")
 # all packages sould be listed inside install_load()
 source("./R/library.R")
 install_load("ggplot2", "corrplot", "caret", "C50", "cwhmisc", "stringr", "gmodels")
-
-# load file with function we'll use in work with classification tree
-#source("./R/C5.0.graphviz.R")
 ```
 
 # Introduction
@@ -55,9 +52,7 @@ Both project work and this report are structured according to following process 
 + Dimensionality reduction (if required).
 + Separation of dataset into training and test.
 
-**4. Modelling.** Building the predictive model based on training dataset with target attribute answering the chosen business question. 
-
-For classification trees methodology, modelling process include following steps.
+**4. Modelling.** Building the predictive model based on training dataset with target attribute answering the chosen business question. We use classification trees methodology.
 
 + Choice of methodology and tool.
 + First application of tool to dataset.
@@ -96,11 +91,11 @@ Dataset contains `r nrow(HR)` observations. Each observation represents informat
 + Time spent at the company *(time_spend_company)*
 + Whether they have had a work accident *(Work_accident)*
 + Whether they have had a promotion in the last 5 years *(promotion_last_5years)*
-+ Department *(sales)*
++ Department *(Department)*
 + Salary *(salary)*
 + Whether the employee has left, the target variable in this project *(left)*
 
-Below is summary of project dataset structure.
+Below is brief info about project dataset structure.
 
 ```{r}
 str(HR)
@@ -244,7 +239,7 @@ Graphical analysis of variables' distributions done on Data Understanding step d
 
 ## Creation of dummy variables
 
-Previously we identified, that two variables are categorical now: Department and Salary. Now we convert them to dummy variables, creating two dummy variables for Salary and nine dummy variables for Department.
+Previously we identified that two variables are categorical now: Department and Salary. Now we convert them to dummy variables, creating two dummy variables for Salary and nine dummy variables for Department.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 dummy <- dummyVars(" ~ .", data = HR, fullRank = TRUE)
@@ -252,7 +247,7 @@ HR.dm <- data.frame(predict(dummy, newdata = HR))
 str(HR.dm)
 ```
 
-We then re-checked for cross-correlations with the new dummy variables included. We see that none of the dummy variables are correlated with whether the employee left the firm (i.e all correlation < |0.7|). The only exception was between salary_medium and salary_low, which is expected because salary can only be medium or low. The result of this analysis do not support the necessity of removing variables.
+We then re-checked for cross-correlations with the new dummy variables included. We see that none of the dummy variables are correlated with whether the employee left the firm (i.e all correlation < |0.7|). We don't pay attention to any correlations between pairs of dummy variables created from one initial variable. The result of this analysis do not support the necessity of removing variables.
 
 ```{r}
 CorTable2 <- cor(HR.dm[,1:19])
@@ -328,7 +323,6 @@ For a first iteration, we apply C5.0 algorithm to the whole training dataset. Va
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ClTree1 <- C5.0(TrainDS[-7],TrainDS$left)
 summary(ClTree1)
-plot(ClTree1)
 ```
 
 ## Simplification of the model
