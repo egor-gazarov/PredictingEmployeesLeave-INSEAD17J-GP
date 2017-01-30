@@ -120,6 +120,8 @@ There are `r nrow(HR.left)` observations of employees who left the company and `
 
 ### Satisfaction level
 
+Analysis of satisfaction level shows that employees that left the company had satisfaction level at all levels (low, medium, and high). On the other hand, the analysis also confirmed that most of the employees who stayed have medium to high satisfaction level. This suggests that high satisfaction level is not a predictor of employee staying, but los satisfaction level is a stronger predictor of employees leaving.
+
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$satisfaction_level)) + geom_density(kernel = "gaussian", fill = '#B8274C', alpha = 0.3) + labs(x = "Satisfaction level of employees who left") + xlim(0, 1)
 ```
@@ -128,7 +130,10 @@ ggplot(HR.left, aes(HR.left$satisfaction_level)) + geom_density(kernel = "gaussi
 ggplot(HR.stayed, aes(HR.stayed$satisfaction_level)) + geom_density(kernel = "gaussian", fill = '#006E51', alpha = 0.3) + labs(x = "Satisfaction level of employees who stayed") + xlim(0, 1)
 ```
 
+
 ### Last evaluation
+
+Analysis of last evaluation shows that employees that left scored medium and high score during the last evaluation , while employees that stayed are distributed more evenly along the spectrum of medium-high.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$last_evaluation)) + geom_density(kernel = "gaussian", fill = '#B8274C', alpha = 0.3) + labs(x = "Last evaluation of employees who left") + xlim(0, 1)
@@ -138,7 +143,11 @@ ggplot(HR.left, aes(HR.left$last_evaluation)) + geom_density(kernel = "gaussian"
 ggplot(HR.stayed, aes(HR.stayed$last_evaluation)) + geom_density(kernel = "gaussian", fill = '#006E51', alpha = 0.3) + labs(x = "Last evaluation of employees who stayed") + xlim(0, 1)
 ```
 
+
+
 ### Number of projects
+
+Analysis of number of projects suggests that the ideal number of project is more than 3 projects per employee. The bulk of employees that left the company had 2 projects only.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$number_project)) + geom_histogram(fill = '#B8274C', binwidth = .5) + scale_x_continuous(breaks = seq(0,max(max(HR.left$number_project),max(HR.stayed$number_project)),by = 1), limits = c(0, max(max(HR.left$number_project),max(HR.stayed$number_project))+1)) + labs(x = "Number of projects of employees who left")
@@ -149,6 +158,8 @@ ggplot(HR.stayed, aes(HR.stayed$number_project)) + geom_histogram(fill = '#006E5
 ```
 
 ### Monthly hours
+
+
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$average_montly_hours)) + geom_density(kernel = "gaussian", fill = '#B8274C', alpha = 0.3) + labs(x = "Average monthly hours of employees who left") + xlim(min( min(HR.left$average_montly_hours), min(HR.stayed$average_montly_hours)), max( max(HR.left$average_montly_hours), max(HR.stayed$average_montly_hours)))
