@@ -120,7 +120,7 @@ There are `r nrow(HR.left)` observations of employees who left the company and `
 
 ### Satisfaction level
 
-Analysis of satisfaction level shows that employees that left the company had satisfaction level at all levels (low, medium, and high). On the other hand, the analysis also confirmed that most of the employees who stayed have medium to high satisfaction level. This suggests that high satisfaction level is not a predictor of employee staying, but los satisfaction level is a stronger predictor of employees leaving.
+Analysis of satisfaction level shows that employees that left the company had satisfaction level at all levels (low, medium, and high). On the other hand, the analysis also confirmed that most of the employees who stayed have medium to high satisfaction level. This suggests that high satisfaction level is not a predictor of employee staying, but low satisfaction level is a stronger predictor of employees leaving.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$satisfaction_level)) + geom_density(kernel = "gaussian", fill = '#B8274C', alpha = 0.3) + labs(x = "Satisfaction level of employees who left") + xlim(0, 1)
@@ -133,7 +133,7 @@ ggplot(HR.stayed, aes(HR.stayed$satisfaction_level)) + geom_density(kernel = "ga
 
 ### Last evaluation
 
-Analysis of last evaluation shows that employees that left scored medium and high score during the last evaluation , while employees that stayed are distributed more evenly along the spectrum of medium-high.
+Analysis of last evaluation shows that employees that left scored medium and high score during the last evaluation , while employees that stayed are distributed more evenly along the spectrum of medium-high. Strong visual differences in distributions suggest that we can expect this variable to appear as significant for our predicting model.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$last_evaluation)) + geom_density(kernel = "gaussian", fill = '#B8274C', alpha = 0.3) + labs(x = "Last evaluation of employees who left") + xlim(0, 1)
@@ -144,10 +144,9 @@ ggplot(HR.stayed, aes(HR.stayed$last_evaluation)) + geom_density(kernel = "gauss
 ```
 
 
-
 ### Number of projects
 
-Analysis of number of projects suggests that the ideal number of project is more than 3 projects per employee. The bulk of employees that left the company had 2 projects only.
+Analysis of number of projects suggests that the ideal number of project is probably 3-4 projects per employee. The bulk of employees that left the company had 2 projects only.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$number_project)) + geom_histogram(fill = '#B8274C', binwidth = .5) + scale_x_continuous(breaks = seq(0,max(max(HR.left$number_project),max(HR.stayed$number_project)),by = 1), limits = c(0, max(max(HR.left$number_project),max(HR.stayed$number_project))+1)) + labs(x = "Number of projects of employees who left")
@@ -157,9 +156,10 @@ ggplot(HR.left, aes(HR.left$number_project)) + geom_histogram(fill = '#B8274C', 
 ggplot(HR.stayed, aes(HR.stayed$number_project)) + geom_histogram(fill = '#006E51', binwidth = .5) + scale_x_continuous(breaks = seq(0,max(max(HR.left$number_project),max(HR.stayed$number_project)),by = 1), limits = c(0, max(max(HR.left$number_project),max(HR.stayed$number_project))+1)) + labs(x = "Number of projects of employees who stayed")
 ```
 
+
 ### Monthly hours
 
-Analysis of monthly hours suggest that the ideal work hour is between 150-250 hours. There are high concentration of employees that left with work hours lower than 150 hours or higher than 250 hours.
+Analysis of monthly hours suggest that the ideal work intensity is between 150-250 hours. There are high concentration of employees that left with work hours lower than 150 hours or higher than 250 hours. Strong visual differences in distributions suggest that we can expect this variable to appear as significant for our predicting model.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$average_montly_hours)) + geom_density(kernel = "gaussian", fill = '#B8274C', alpha = 0.3) + labs(x = "Average monthly hours of employees who left") + xlim(min( min(HR.left$average_montly_hours), min(HR.stayed$average_montly_hours)), max( max(HR.left$average_montly_hours), max(HR.stayed$average_montly_hours)))
@@ -168,6 +168,7 @@ ggplot(HR.left, aes(HR.left$average_montly_hours)) + geom_density(kernel = "gaus
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.stayed, aes(HR.stayed$average_montly_hours)) + geom_density(kernel = "gaussian", fill = '#006E51', alpha = 0.3) + labs(x = "Average monthly hours of employees who stayed") + xlim(min( min(HR.left$average_montly_hours), min(HR.stayed$average_montly_hours)), max( max(HR.left$average_montly_hours), max(HR.stayed$average_montly_hours)))
 ```
+
 
 ### Time at company
 
@@ -181,9 +182,10 @@ ggplot(HR.left, aes(HR.left$time_spend_company)) + geom_histogram(fill = '#B8274
 ggplot(HR.stayed, aes(HR.stayed$time_spend_company)) + geom_histogram(fill = '#006E51', binwidth = .5) + scale_x_continuous(breaks = seq(0,max(max(HR.left$time_spend_company),max(HR.stayed$time_spend_company)),by = 1), limits = c(0, max(max(HR.left$time_spend_company),max(HR.stayed$time_spend_company))+1)) + labs(x = "Time spent at the company (in years) of employees who stayed")
 ```
 
+
 ### Work accidents 
 
-
+Surprisingly share of employees who had accident is higher among employees who stayed. Intuitively we could expect that employees leave company after having accident. 
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$Work_accident)) + geom_histogram(fill = '#B8274C', binwidth = .5) + labs(x = "Number of employees who experienced and did not experience work accident of employees who left")
@@ -193,7 +195,10 @@ ggplot(HR.left, aes(HR.left$Work_accident)) + geom_histogram(fill = '#B8274C', b
 ggplot(HR.stayed, aes(HR.stayed$Work_accident)) + geom_histogram(fill = '#006E51', binwidth = .5) + labs(x = "Number of employees who experienced and did not experience work accident of employees who stayed")
 ```
 
+
 ### Promotions 
+
+Slightly higher share of employees who were promoted is observed among employees who stayed. This makes sense. Looks like company if generally not very active with promoting its staff.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$promotion_last_5years)) + geom_histogram(fill = '#B8274C', binwidth = .5) + labs(x = "Number of employees who were or were not promoted during last 5 years of employees who left")
@@ -203,15 +208,10 @@ ggplot(HR.left, aes(HR.left$promotion_last_5years)) + geom_histogram(fill = '#B8
 ggplot(HR.stayed, aes(HR.stayed$promotion_last_5years)) + geom_histogram(fill = '#006E51', binwidth = .5) + labs(x = "Number of employees who were or were not promoted during last 5 years of employees who stayed")
 ```
 
+
 ### Department
 
-The table below shows the ratio of number employees who left over the number of employees who stayed. The higher the ratio indicated that a division has a higher turnover. The table below suggested that the turnover ratio differs across the different division, with R&D having the lowest turnover and HR having the highest turnover.
-
-```{r , echo=TRUE, message=FALSE, warning=FALSE}
-leftdiv <- as.data.frame(table(HR.left$Division))
-staydiv <- as.data.frame(table(HR.stayed$Division))
-cbind(leftdiv[1],round(leftdiv[-1]/staydiv[-1],2))
-```
+The chart below shows distribution of people who left and who stayed between departments. Distributions look visually similar with some differences being observed in R&D, Accounting, HR departments. We might suspect this department might appear as predicting factors in our model.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 Departments <- c("sales", "technical", "support", "IT", "product_mng", "marketing", "RandD", "accounting", "hr","management")
@@ -222,7 +222,18 @@ ggplot(HR.left, aes(HR.left$Division)) + geom_bar(stat = "count", fill = '#B8274
 ggplot(HR.stayed, aes(HR.stayed$Division)) + geom_bar(stat = "count", fill = '#006E51') + labs(x = "Department of employees who stayed") + scale_x_discrete(limits = Departments)
 ```
 
+The table below shows the ratio of number employees who left over the number of employees who stayed. The higher the ratio indicated that a division has a higher turnover. The table below suggested that the turnover ratio differs across the different division, with R&D having the lowest turnover and HR having the highest turnover.
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+leftdiv <- as.data.frame(table(HR.left$Division))
+staydiv <- as.data.frame(table(HR.stayed$Division))
+cbind(leftdiv[1],round(leftdiv[-1]/staydiv[-1],2))
+```
+
+
 ### Salary
+
+Comparing distribution of people who left and stayed across salary groups, we see that in stayed category there are relatively more people who had medium and high salaries.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$salary)) + geom_bar(stat = "count", fill = '#B8274C') + labs(x = "Salary level of employees who left") + scale_x_discrete(limits = c("low", "medium", "high"))
@@ -231,6 +242,7 @@ ggplot(HR.left, aes(HR.left$salary)) + geom_bar(stat = "count", fill = '#B8274C'
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.stayed, aes(HR.stayed$salary)) + geom_bar(stat = "count", fill = '#006E51') + labs(x = "Salary level of employees who stayed") + scale_x_discrete(limits = c("low", "medium", "high"))
 ```
+
 
 ## Correlations
 
@@ -378,10 +390,19 @@ Model correctly identified `r round(CT.Tree.DF[4,3]/(CT.Tree.DF[4,3]+CT.Tree.DF[
 
 Model also correctly identified `r round(CT.Tree.DF[1,3]/(CT.Tree.DF[1,3]+CT.Tree.DF[3,3]),3)*100`% of negative observations. Only for `r CT.Tree.DF[3,3]` of employees model generated false positive prediction.
 
+Since predictive quality is similar on training and test datasets, we conclude that we managed to avoid overfitting.
+
 
 # Deployment
 
 As a result of the project, we built a model that proved to be a successful predictor of possible leave of employees. It turned out, that most powerful predictors of leave are working hours, satisfaction level, time spent at company, last evaluation, and number of projects. But this data should be used in a systematic logical way, described by decision tree we built - none of variables alone can predict a leave (this we saw from correlation analysis at the beginning). Furthermore, while the model was built with backward looking data, the prediction tool uses data on employees that are still working at the company during data collection. Prediction result must be interpreted carefully, as we will present below.
+
+We can also use variables proven to be significant for prediction as actionable recommendations for HR team:
++ to take urgent measures if employee's working hours go above 287;
++ to pay special attention to employees with satisfaction level below 0.46;
++ to focus preventive measures for employees retention on people with 3-5 years in company;
++ to monitor people with evaluations below 0.57;
++ to check reasons why employees might have too light project workload (2 project or less).
 
 ## Deployment Example 1: Early Indicator of Employee Leaving
 
@@ -401,7 +422,7 @@ ftable(data.deploy1$name,predict.deploy, dnn = c("Name","Prediction"))
 
 While all three employees were still employed in the company, the model gave a 'leave' prediction to Jackie, and a 'stay' prediction to Brad and Shahrukh. HR should interpret this data the following way:
 
-+ There is a high probability that Jackie will leave the company in the near future. HR can then decide whether they should take pre-emptive measures to prevent Jackie from leaving
++ There is a high probability that Jackie will leave the company in the near future. HR can then decide whether they should take preemptive measures to prevent Jackie from leaving
 + There is a high probability that Brad and Shahrukh will stay in the company in the near future. HR does not need to take immediate action. However, their data must be reevaluated routinely as the data will change (for example, time spend in the company will continue to increase or employees get new projects)
 
 ## Deployment Example 2: HR Forecasting
@@ -419,7 +440,7 @@ We can then generate a report of a percentage of employees that has a high proba
 predict.deploy2 <- predict(ClTree2,data.deploy2)
 ftable(predict.deploy2, dnn = c("Prediction"))
 ```
-In this case, we see that 1 in 10 employees (or 10% of employees) have a high probability of leaving the company in the near future. Using this data, HR can set aside enough budget to plan for backfilling these employees.
+In this case, we see that 1 in 10 employees (or 10% of employees) have a high probability of leaving the company in the near future. Using this data, HR can set aside enough budget to plan for back-filling these employees.
 
 
 # Further Improvements
