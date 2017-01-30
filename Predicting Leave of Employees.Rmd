@@ -159,7 +159,7 @@ ggplot(HR.stayed, aes(HR.stayed$number_project)) + geom_histogram(fill = '#006E5
 
 ### Monthly hours
 
-
+Analysis of monthly hours suggest that the ideal work hour is between 150-250 hours. There are high concentration of employees that left with work hours lower than 150 hours or higher than 250 hours.
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$average_montly_hours)) + geom_density(kernel = "gaussian", fill = '#B8274C', alpha = 0.3) + labs(x = "Average monthly hours of employees who left") + xlim(min( min(HR.left$average_montly_hours), min(HR.stayed$average_montly_hours)), max( max(HR.left$average_montly_hours), max(HR.stayed$average_montly_hours)))
@@ -171,6 +171,8 @@ ggplot(HR.stayed, aes(HR.stayed$average_montly_hours)) + geom_density(kernel = "
 
 ### Time at company
 
+The tenure time analysis of employees who left suggest that the highest risk of employees leaving occur at year 3 of employment. The company might want to do more analysis around time at company because the graph of employees that are staying indicates that most of the company's employees have only spent 2-3 years. That means a large portion of their employees might be at risk of leaving.
+
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$time_spend_company)) + geom_histogram(fill = '#B8274C', binwidth = .5) + scale_x_continuous(breaks = seq(0,max(max(HR.left$time_spend_company),max(HR.stayed$time_spend_company)),by = 1), limits = c(0, max(max(HR.left$time_spend_company),max(HR.stayed$time_spend_company))+1)) + labs(x = "Time spent at the company (in years) of employees who left")
 ```
@@ -180,6 +182,8 @@ ggplot(HR.stayed, aes(HR.stayed$time_spend_company)) + geom_histogram(fill = '#0
 ```
 
 ### Work accidents 
+
+
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 ggplot(HR.left, aes(HR.left$Work_accident)) + geom_histogram(fill = '#B8274C', binwidth = .5) + labs(x = "Number of employees who experienced and did not experience work accident of employees who left")
@@ -200,6 +204,14 @@ ggplot(HR.stayed, aes(HR.stayed$promotion_last_5years)) + geom_histogram(fill = 
 ```
 
 ### Department
+
+The table below shows the ratio of number employees who left over the number of employees who stayed. The higher the ratio indicated that a division has a higher turnover. The table below suggested that the turnover ratio differs across the different division, with R&D having the lowest turnover and HR having the highest turnover.
+
+```{r , echo=TRUE, message=FALSE, warning=FALSE}
+leftdiv <- as.data.frame(table(HR.left$Division))
+staydiv <- as.data.frame(table(HR.stayed$Division))
+cbind(leftdiv[1],round(leftdiv[-1]/staydiv[-1],2))
+```
 
 ```{r , echo=TRUE, message=FALSE, warning=FALSE}
 Departments <- c("sales", "technical", "support", "IT", "product_mng", "marketing", "RandD", "accounting", "hr","management")
